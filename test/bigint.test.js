@@ -1,5 +1,5 @@
 // test/bigint.test.js
-const { BigIntPrimitive } = require('../src/bigint.js'); // Assuming bigint.js is in src
+import { BigIntPrimitive } from '../src/bigint.js'; // Assuming bigint.js is in src
 
 // Simple assertion function
 function assertEqual(actual, expected, message) {

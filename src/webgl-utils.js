@@ -5,7 +5,7 @@
  * @param {HTMLCanvasElement} canvas The canvas element to get the context from.
  * @returns {WebGLRenderingContext | null} The WebGL context or null if not available.
  */
-function initWebGL(canvas) {
+export function initWebGL(canvas) {
     if (!canvas) {
         console.error("initWebGL: Canvas element is null or undefined.");
         return null;
@@ -34,7 +34,7 @@ function initWebGL(canvas) {
  * @param {string} source The shader source code.
  * @returns {WebGLShader | null} The compiled shader or null on failure.
  */
-function createShader(gl, type, source) {
+export function createShader(gl, type, source) {
     if (!gl) {
         console.error("createShader: WebGL context is null.");
         return null;
@@ -64,7 +64,7 @@ function createShader(gl, type, source) {
  * @param {WebGLShader} fragmentShader The compiled fragment shader.
  * @returns {WebGLProgram | null} The shader program or null on failure.
  */
-function createProgram(gl, vertexShader, fragmentShader) {
+export function createProgram(gl, vertexShader, fragmentShader) {
     if (!gl || !vertexShader || !fragmentShader) {
         console.error("createProgram: Invalid arguments (gl, vertexShader, or fragmentShader is null).");
         return null;
@@ -97,7 +97,7 @@ function createProgram(gl, vertexShader, fragmentShader) {
  * @param {boolean} [useRGBA=false] If true, assumes dataArray has 4 components (RGBA) per texel. If false (default), assumes 1 component (R) per texel.
  * @returns {WebGLTexture | null} The created texture or null on failure.
  */
-function createDataTexture(gl, dataArray, width, height, useRGBA = false) {
+export function createDataTexture(gl, dataArray, width, height, useRGBA = false) {
     if (!gl) {
         console.error("createDataTexture: WebGL context is null.");
         return null;
@@ -152,7 +152,7 @@ function createDataTexture(gl, dataArray, width, height, useRGBA = false) {
  * @param {boolean} [extractSingleComponent=true] If true, extracts only the .r component from each RGBA texel.
  * @returns {Float32Array | null} The pixel data or null on failure.
  */
-function readDataFromTexture(gl, framebuffer, width, height, extractSingleComponent = true) {
+export function readDataFromTexture(gl, framebuffer, width, height, extractSingleComponent = true) {
     if (!gl) {
         console.error("readDataFromTexture: WebGL context is null.");
         return null;
@@ -172,25 +172,4 @@ function readDataFromTexture(gl, framebuffer, width, height, extractSingleCompon
         console.log(`Data read from texture (${width}x${height}) as RGBA.`);
         return pixelDataRGBA;
     }
-}
-
-// Expose functions if running in a module-like environment (e.g. Node.js for testing, not for browser)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        initWebGL,
-        createShader,
-        createProgram,
-        createDataTexture,
-        readDataFromTexture
-    };
-}
-
-if (typeof window !== 'undefined') {
-    window.webglUtils = {
-        initWebGL,
-        createShader,
-        createProgram,
-        createDataTexture,
-        readDataFromTexture
-    };
 }
