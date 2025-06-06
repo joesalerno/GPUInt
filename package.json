@@ -15,10 +15,5 @@
     "performance"
   ],
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "jest": "^29.7.0",
-    "jest-puppeteer": "^11.0.0",
-    "puppeteer": "^24.10.0"
-  }
+  "license": "ISC"
 }
