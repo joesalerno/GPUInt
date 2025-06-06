@@ -34,7 +34,7 @@ describe('BigIntPrimitive Browser Tests', () => {
                     if (!foundMessage) {
                         foundMessage = true;
                         clearTimeout(timeoutId);
-                        page.removeListener('console', specificConsoleListener);
+                        page.off('console', specificConsoleListener);
                         resolve();
                     }
                 }
@@ -42,7 +42,7 @@ describe('BigIntPrimitive Browser Tests', () => {
 
             const timeoutId = setTimeout(() => {
                 if (!foundMessage) {
-                    page.removeListener('console', specificConsoleListener);
+                    page.off('console', specificConsoleListener);
                     reject(new Error(`Timeout waiting for message: "${expectedMessage}" after 15s`));
                 }
             }, 15000); // Inner timeout for the promise: 15 seconds
