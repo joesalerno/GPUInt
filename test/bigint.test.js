@@ -22,7 +22,7 @@ function runTests() {
 
     // Constructor tests
     let num = new BigIntPrimitive("12345678901234567890");
-    assertDeepEqual(num.limbs, [7890, 3456, 123, 8901, 5678, 1234], "Constructor: large string to limbs");
+    assertDeepEqual(num.limbs, [7890, 3456, 9012, 5678, 1234], "Constructor: large string to limbs");
     assertEqual(num.sign, 1, "Constructor: sign of positive number");
 
     let numFromNum = new BigIntPrimitive(12345);
