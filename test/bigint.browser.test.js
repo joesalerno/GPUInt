@@ -7,6 +7,7 @@ describe('BigIntPrimitive Browser Tests', () => {
     beforeAll(async () => {
         await page.goto(PAGE_URL, { waitUntil: 'networkidle0' });
 
+        /*
         page.on('console', msg => {
             console.log(`PAGE_CONSOLE: [${msg.type()}] ${msg.text()}`);
         });
@@ -22,6 +23,7 @@ Stack: ${error.stack}`);
                console.log(`PAGE_SCRIPT_LOADED: ${request.method()} ${request.url()} - Status: ${request.response().status()}`);
            }
         });
+        */
     });
 
     it('should be a placeholder test and simply pass', () => {
