@@ -1,0 +1,17 @@
+{
+  "name": "webgl-bigint",
+  "version": "0.0.1",
+  "description": "A BigInt library using WebGL for GPU acceleration.",
+  "main": "src/bigint.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "bigint",
+    "webgl",
+    "gpu",
+    "performance"
+  ],
+  "author": "",
+  "license": "ISC"
+}
