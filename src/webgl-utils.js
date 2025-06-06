@@ -184,3 +184,13 @@ if (typeof module !== 'undefined' && module.exports) {
         readDataFromTexture
     };
 }
+
+if (typeof window !== 'undefined') {
+    window.webglUtils = {
+        initWebGL,
+        createShader,
+        createProgram,
+        createDataTexture,
+        readDataFromTexture
+    };
+}
