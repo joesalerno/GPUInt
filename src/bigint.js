@@ -44,6 +44,13 @@ class BigIntPrimitive {
         const start = Math.max(0, i - BASE_LOG10);
         this.limbs.push(Number(stringValue.substring(start, i)));
       }
+      // Normalize limbs: remove leading zeros represented as trailing zero limbs
+      // e.g., if limbs is [123, 0] (from "00123"), it becomes [123]
+      // e.g., if limbs is [0, 0] (from "0000"), it should become [0] but this is handled by the stringValue === "0" check.
+      // This primarily handles cases like "00789" -> [789, 0] -> [789]
+      while (this.limbs.length > 1 && this.limbs[this.limbs.length - 1] === 0) {
+          this.limbs.pop();
+      }
     }
   }
 
