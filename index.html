@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebGL BigInt Test</title>
+    <style>
+        body { font-family: sans-serif; }
+        canvas { border: 1px solid black; }
+    </style>
+</head>
+<body>
+    <h1>WebGL BigInt Test Page</h1>
+    <canvas id="glCanvas" width="256" height="256"></canvas>
+    <p>Check the browser console for output.</p>
+
+    <!-- Order is important: utils, then bigint which might use utils -->
+    <script src="src/webgl-utils.js"></script>
+    <script src="src/bigint.js"></script>
+
+    <script>
+        // Shader sources (will be used by bigint.js)
+        // Ideally, these would be loaded via fetch or part of a build process
+        // For now, defining them globally so bigint.js can access them when it runs.
+        const additionVertexShaderSource = `
+            attribute vec2 a_position; // Vertex positions for a quad (e.g., -1 to 1)
+            // attribute vec2 a_texCoord; // If needed for sampling based on vertex
+            varying vec2 v_texCoord;   // Pass texcoord to fragment shader
+
+            void main() {
+                // Simple pass-through, assuming a_position is a screen-space quad
+                // covering the area to be computed.
+                // For GPGPU, v_texCoord is often derived from gl_FragCoord in fragment shader,
+                // or by setting up texture coordinates on the quad.
+                // Let's use a common approach: render a quad that covers the output texture.
+                // Texture coordinates will range from 0.0 to 1.0 across this quad.
+                gl_Position = vec4(a_position, 0.0, 1.0);
+                v_texCoord = a_position * 0.5 + 0.5; // Convert from [-1,1] to [0,1]
+            }
+        `;
+
+        const additionFragmentShaderSource = `
+            precision highp float;
+
+            uniform sampler2D u_num1Texture;
+            uniform sampler2D u_num2Texture;
+            uniform sampler2D u_carryTexture; // Incoming carry (likely all zeros for 1st pass)
+            // uniform vec2 u_textureSize;   // If we need to calculate texCoord from gl_FragCoord
+
+            varying vec2 v_texCoord; // Interpolated texture coordinate from vertex shader
+
+            const float BASE = 10000.0;
+
+            void main() {
+                // Read limbs from input textures using v_texCoord
+                float limb1 = texture2D(u_num1Texture, v_texCoord).r;
+                float limb2 = texture2D(u_num2Texture, v_texCoord).r;
+                float carryIn = texture2D(u_carryTexture, v_texCoord).r;
+
+                float sum = limb1 + limb2 + carryIn;
+
+                float resultLimb = mod(sum, BASE);
+                float carryOut = floor(sum / BASE);
+
+                // Output: resultLimb in .r, carryOut in .g
+                gl_FragColor = vec4(resultLimb, carryOut, 0.0, 1.0);
+            }
+        `;
+
+        function manualTest() {
+            console.log("Starting manual BigIntPrimitive test with WebGL...");
+
+            const canvas = document.getElementById('glCanvas');
+            if (!canvas) {
+                console.error("Canvas element not found!");
+                return;
+            }
+
+            // Make webglUtils functions available globally for BigIntPrimitive to use for now
+            // This is a temporary measure for easy access during this stage.
+            // A better approach would be dependency injection or module bundling.
+            // window.webglUtils = { initWebGL, createShader, createProgram, createDataTexture, readDataFromTexture };
+            // Shader sources also made global for bigint.js to find
+            // window.vertexShaderSrc = additionVertexShaderSource;
+            // window.fragmentShaderSrc = additionFragmentShaderSource;
+
+            // The following lines assume webgl-utils.js defines these functions globally
+            // or that BigIntPrimitive is modified to receive them.
+            // For this step, we ensure the global shader strings are set,
+            // and BigIntPrimitive will expect to find initWebGL etc. on its own or via window.webglUtils
+             window.vertexShaderSrc = additionVertexShaderSource; // Make available for bigint.js
+             window.fragmentShaderSrc = additionFragmentShaderSource; // Make available for bigint.js
+
+
+            try {
+                const num1Str = "12345"; // Limb: [2345, 1]
+                const num2Str = "67890"; // Limb: [7890, 6]
+                                     // Sum:   80235. Limbs: [235, 8]
+                                     // num1: 12345.0 (tex)
+                                     // num2: 67890.0 (tex)
+                                     // carryIn: 0.0 (tex)
+                                     // sum = 80235.0
+                                     // resultLimb = mod(80235.0, 10000.0) = 235.0
+                                     // carryOut = floor(80235.0 / 10000.0) = 8.0
+
+                console.log(`Attempting to add ${num1Str} and ${num2Str}`);
+                // The constructor of BigIntPrimitive might need to be updated to accept/store the canvas
+                // or gl context if it's going to manage WebGL operations directly.
+                // For now, assuming 'add' method will handle WebGL setup.
+                const bigInt1 = new BigIntPrimitive(num1Str);
+                const bigInt2 = new BigIntPrimitive(num2Str);
+
+                // Pass canvas to add method, or ensure it's accessible.
+                // This implies 'add' method might need to be refactored to accept canvas/gl.
+                bigInt1.canvas = canvas; // Temporarily attach canvas to instance for add method to use
+                bigInt2.canvas = canvas; // Temporarily attach canvas to instance for add method to use
+
+
+                console.log("BigInts created:", bigInt1.toString(), bigInt2.toString());
+
+                // The add method will now attempt to use real WebGL
+                const sumBigInt = bigInt1.add(bigInt2);
+
+                if (sumBigInt) {
+                    console.log(`Sum: ${sumBigInt.toString()}`);
+                    const expectedSum = "80235";
+                    if (sumBigInt.toString() === expectedSum) {
+                        console.info("Manual test PASSED!");
+                    } else {
+                        console.error(`Manual test FAILED! Expected ${expectedSum}, got ${sumBigInt.toString()}`);
+                    }
+                } else {
+                    console.error("Addition returned undefined or null. WebGL part might have failed.");
+                }
+
+            } catch (e) {
+                console.error("Error during manual test:", e.message, e.stack);
+            }
+        }
+
+        // Wait for scripts to load before running the test
+        window.onload = manualTest;
+    </script>
+</body>
+</html>

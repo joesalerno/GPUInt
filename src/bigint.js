@@ -1,67 +1,36 @@
-// const { initWebGL, createShader, createProgram, createBuffer } = require('./webgl-utils');
-// For now, to avoid issues with Node.js vs browser environments for webgl-utils,
-// we will assume these functions are globally available or will be injected.
-// This subtask will focus on the BigIntPrimitive logic using placeholders for actual WebGL calls.
+// WebGL utilities and shader sources are expected to be globally available via
+// window.webglUtils, window.vertexShaderSrc, and window.fragmentShaderSrc
+// as set up by the HTML page.
 
 const BASE = 10000;
 const BASE_LOG10 = 4; // log10(BASE)
 
-const additionVertexShaderSource = `
-    attribute vec2 a_position;
-    attribute vec2 a_texCoord;
-    varying vec2 v_texCoord;
-    void main() {
-        gl_Position = vec4(a_position, 0.0, 1.0);
-        v_texCoord = a_texCoord;
-    }
-`;
-
-const additionFragmentShaderSource = `
-    precision highp float;
-    uniform sampler2D u_num1Texture;
-    uniform sampler2D u_num2Texture;
-    uniform sampler2D u_carryTexture; // Will be all zeros in this simplified version
-    varying vec2 v_texCoord;
-    const float BASE = 10000.0; // Must match JS BASE
-
-    void main() {
-        float limb1 = texture2D(u_num1Texture, v_texCoord).r;
-        float limb2 = texture2D(u_num2Texture, v_texCoord).r;
-        float carryIn = texture2D(u_carryTexture, v_texCoord).r; // Assumed 0 for this pass
-
-        float sum = limb1 + limb2 + carryIn;
-        float resultLimb = mod(sum, BASE);
-        float carryOut = floor(sum / BASE);
-        gl_FragColor = vec4(resultLimb, carryOut, 0.0, 1.0);
-    }
-`;
-
-
 /**
  * @class BigIntPrimitive
- * @description Represents a large integer.
+ * @description Represents a large integer, potentially using WebGL for operations.
  */
 class BigIntPrimitive {
   /**
    * Creates an instance of BigIntPrimitive.
    * @param {string | number} value The initial value. Can be a string of digits or a number.
+   * @param {HTMLCanvasElement} [canvas] Optional canvas element for WebGL operations.
    * @throws {TypeError} If the input string is not a valid representation of an integer or input type is wrong.
    */
-  constructor(value) {
+  constructor(value, canvas) {
     this.limbs = [];
     this.sign = 1; // Assume positive for now
+    this.canvas = canvas; // Store the canvas for WebGL operations
 
     let stringValue = '';
 
     if (typeof value === 'number') {
-      // Ensure it's an integer, though JS numbers have precision limits for large integers
       if (!Number.isInteger(value)) {
         throw new TypeError("Numeric input must be an integer.");
       }
       stringValue = String(value);
     } else if (typeof value === 'string') {
       stringValue = value.trim();
-      if (!/^\d+$/.test(stringValue) && stringValue !== "") { // Allow empty string for 0
+      if (!/^\d+$/.test(stringValue) && stringValue !== "") {
         throw new TypeError("Invalid BigInt string format: contains non-digits.");
       }
     } else {
@@ -71,8 +40,6 @@ class BigIntPrimitive {
     if (stringValue === "" || stringValue === "0") {
       this.limbs = [0];
     } else {
-      // Parse into limbs, least significant first
-      let currentLimb = "";
       for (let i = stringValue.length; i > 0; i -= BASE_LOG10) {
         const start = Math.max(0, i - BASE_LOG10);
         this.limbs.push(Number(stringValue.substring(start, i)));
@@ -89,9 +56,10 @@ class BigIntPrimitive {
       return "0";
     }
     let s = "";
+    // Build string from least significant limb to most significant
     for (let i = 0; i < this.limbs.length; i++) {
       let limbStr = String(this.limbs[i]);
-      if (i < this.limbs.length - 1) { // Not the most significant limb
+      if (i < this.limbs.length - 1) { // Pad if not the most significant limb
         limbStr = limbStr.padStart(BASE_LOG10, '0');
       }
       s = limbStr + s;
@@ -108,116 +76,183 @@ class BigIntPrimitive {
   }
 
   /**
-   * Adds another BigIntPrimitive to this one.
+   * Adds another BigIntPrimitive to this one using WebGL for computation.
    * For now, assumes both are positive.
    * @param {BigIntPrimitive} otherBigInt The BigIntPrimitive to add.
-   * @returns {BigIntPrimitive} A new BigIntPrimitive representing the sum.
+   * @returns {BigIntPrimitive | null} A new BigIntPrimitive representing the sum, or null on WebGL error.
    * @throws {TypeError} If otherBigInt is not an instance of BigIntPrimitive.
    */
   add(otherBigInt) {
     if (!(otherBigInt instanceof BigIntPrimitive)) {
       throw new TypeError("Input must be an instance of BigIntPrimitive.");
     }
+    if (!this.canvas) {
+        console.error("BigIntPrimitive.add: Canvas element not provided to constructor. WebGL operations require a canvas.");
+        return null;
+    }
+    // TODO: Sign handling
 
-    // TODO: Sign handling: if (this.sign !== otherBigInt.sign) { /* call subtract */ }
+    const gl = window.webglUtils.initWebGL(this.canvas);
+    if (!gl) {
+      console.error("Failed to initialize WebGL context.");
+      return null;
+    }
+
+    // Shader sources from global scope (index.html)
+    const vsSource = window.vertexShaderSrc;
+    const fsSource = window.fragmentShaderSrc;
+    if (!vsSource || !fsSource) {
+        console.error("Shader sources not found on window object.");
+        return null;
+    }
+
+    const vertexShader = window.webglUtils.createShader(gl, gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = window.webglUtils.createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+    const program = window.webglUtils.createProgram(gl, vertexShader, fragmentShader);
+
+    if (!program) {
+      console.error("Failed to create shader program.");
+      if (vertexShader) gl.deleteShader(vertexShader);
+      if (fragmentShader) gl.deleteShader(fragmentShader);
+      return null;
+    }
 
     const maxLength = Math.max(this.limbs.length, otherBigInt.limbs.length);
+    const texWidth = maxLength;
+    const texHeight = 1;
 
-    const num1LimbsGPU = new Float32Array(maxLength);
-    const num2LimbsGPU = new Float32Array(maxLength);
-    const carryInGPU = new Float32Array(maxLength); // Initially all zeros for this simplified model
+    const num1LimbsData = new Float32Array(maxLength);
+    const num2LimbsData = new Float32Array(maxLength);
+    const carryInLimbsData = new Float32Array(maxLength); // All zeros
 
     for (let i = 0; i < maxLength; i++) {
-      num1LimbsGPU[i] = this.limbs[i] || 0;
-      num2LimbsGPU[i] = otherBigInt.limbs[i] || 0;
-      carryInGPU[i] = 0; // For this simplified single-pass simulation
+      num1LimbsData[i] = this.limbs[i] || 0;
+      num2LimbsData[i] = otherBigInt.limbs[i] || 0;
+      carryInLimbsData[i] = 0;
     }
 
-    console.log("Simulating WebGL Execution for Addition...");
-    console.log("Initializing WebGL..."); // Placeholder
-    console.log("Compiling shaders: addition.vert, addition.frag..."); // Placeholder
-    // In a real scenario:
-    // const gl = initWebGL(canvas);
-    // const vertShader = createShader(gl, gl.VERTEX_SHADER, additionVertexShaderSource);
-    // const fragShader = createShader(gl, gl.FRAGMENT_SHADER, additionFragmentShaderSource);
-    console.log("Vertex Shader Source:\n", additionVertexShaderSource);
-    console.log("Fragment Shader Source:\n", additionFragmentShaderSource);
-    console.log("Creating and linking program..."); // Placeholder
-    // const program = createProgram(gl, vertShader, fragShader);
-    console.log("Preparing textures for num1, num2, carryIn..."); // Placeholder
-    // const texNum1 = createBufferAndTexture(gl, num1LimbsGPU, width, height);
-    // const texNum2 = createBufferAndTexture(gl, num2LimbsGPU, width, height);
-    // const texCarryIn = createBufferAndTexture(gl, carryInGPU, width, height);
-    console.log("Setting up framebuffer for output..."); // Placeholder
-    // const outputTexture = createTexture(gl, null, width, height, gl.RGBA, gl.FLOAT);
-    // attachTextureToFramebuffer(gl, outputTexture);
-    console.log("Executing draw call (simulating processing of each limb pair by a shader)..."); // Placeholder
-    // gl.drawArrays(...)
+    const texNum1 = window.webglUtils.createDataTexture(gl, num1LimbsData, texWidth, texHeight, false);
+    const texNum2 = window.webglUtils.createDataTexture(gl, num2LimbsData, texWidth, texHeight, false);
+    const texCarryIn = window.webglUtils.createDataTexture(gl, carryInLimbsData, texWidth, texHeight, false);
 
-    // Simulate Result Reading from GPU
-    // Each "GPU unit" processes one limb pair (num1[i], num2[i], carryIn[i])
-    // and outputs (resultLimb[i], carryOut[i])
+    // Create an empty RGBA texture for the output
+    // Data is passed as null, but dimensions are set. useRGBA = true because we'll read RGBA.
+    const texOutput = window.webglUtils.createDataTexture(gl, new Float32Array(texWidth * texHeight * 4), texWidth, texHeight, true);
+
+
+    if (!texNum1 || !texNum2 || !texCarryIn || !texOutput) {
+        console.error("Failed to create one or more data textures.");
+        // Partial cleanup
+        if (texNum1) gl.deleteTexture(texNum1);
+        if (texNum2) gl.deleteTexture(texNum2);
+        if (texCarryIn) gl.deleteTexture(texCarryIn);
+        if (texOutput) gl.deleteTexture(texOutput);
+        gl.deleteProgram(program);
+        gl.deleteShader(vertexShader);
+        gl.deleteShader(fragmentShader);
+        return null;
+    }
+
+    const fbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texOutput, 0);
+
+    const fboStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (fboStatus !== gl.FRAMEBUFFER_COMPLETE) {
+      console.error("Framebuffer incomplete: " + fboStatus);
+      gl.deleteTexture(texNum1); gl.deleteTexture(texNum2); gl.deleteTexture(texCarryIn); gl.deleteTexture(texOutput);
+      gl.deleteFramebuffer(fbo);
+      gl.deleteProgram(program); gl.deleteShader(vertexShader); gl.deleteShader(fragmentShader);
+      return null;
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null); // Unbind for now
+
+    const quadVertices = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]);
+    const vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, quadVertices, gl.STATIC_DRAW);
+
+    gl.viewport(0, 0, texWidth, texHeight);
+    gl.useProgram(program);
+
+    const aPositionLocation = gl.getAttribLocation(program, "a_position");
+    gl.enableVertexAttribArray(aPositionLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer); // Rebind vertexBuffer before vertexAttribPointer
+    gl.vertexAttribPointer(aPositionLocation, 2, gl.FLOAT, false, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texNum1);
+    gl.uniform1i(gl.getUniformLocation(program, "u_num1Texture"), 0);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, texNum2);
+    gl.uniform1i(gl.getUniformLocation(program, "u_num2Texture"), 1);
+    gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, texCarryIn);
+    gl.uniform1i(gl.getUniformLocation(program, "u_carryTexture"), 2);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    // Read back results
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo); // Bind FBO to read from it
+    const outputPixelDataRGBA = window.webglUtils.readDataFromTexture(gl, fbo, texWidth, texHeight, false); // Get full RGBA
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    if (!outputPixelDataRGBA) {
+        console.error("Failed to read pixel data from output texture.");
+        // Perform full cleanup
+        gl.deleteTexture(texNum1); gl.deleteTexture(texNum2); gl.deleteTexture(texCarryIn); gl.deleteTexture(texOutput);
+        gl.deleteFramebuffer(fbo); gl.deleteBuffer(vertexBuffer);
+        gl.deleteProgram(program); gl.deleteShader(vertexShader); gl.deleteShader(fragmentShader);
+        return null;
+    }
+
     const resultLimbsFromGPU = new Float32Array(maxLength);
     const carryOutFromGPU = new Float32Array(maxLength);
-
     for (let i = 0; i < maxLength; i++) {
-      const sum = num1LimbsGPU[i] + num2LimbsGPU[i] + carryInGPU[i]; // carryInGPU[i] is 0 here
-      resultLimbsFromGPU[i] = sum % BASE;
-      carryOutFromGPU[i] = Math.floor(sum / BASE);
+      resultLimbsFromGPU[i] = outputPixelDataRGBA[i * 4 + 0]; // R component
+      carryOutFromGPU[i] = outputPixelDataRGBA[i * 4 + 1];    // G component
     }
-    console.log("Reading results from GPU (simulated)...");
-    console.log("Simulated raw limb results from GPU:", resultLimbsFromGPU);
-    console.log("Simulated carry-out from GPU for each limb op:", carryOutFromGPU);
 
-
-    // CPU-side Carry Propagation and Result Assembly
-    const resultLimbsFinal = [];
+    // CPU-side Carry Propagation
+    const finalResultLimbs = [];
     let propagatedCarry = 0;
-
     for (let i = 0; i < maxLength; i++) {
-      // The sum for the current limb position, considering the limb value calculated by the GPU
-      // (which was limb1[i]+limb2[i]+initial_carry_in[i]) and the carry propagated from the *previous* less significant limb's calculation.
-      let currentLimbValueFromGPU = resultLimbsFromGPU[i]; // This is (L1+L2+C_in[i]) % BASE
-      let carryGeneratedByGPUForThisPosition = carryOutFromGPU[i]; // This is floor((L1+L2+C_in[i]) / BASE)
-
+      let currentLimbValueFromGPU = resultLimbsFromGPU[i];
+      let carryGeneratedByGPUForThisPosition = carryOutFromGPU[i];
       let sumWithPropagatedCarry = currentLimbValueFromGPU + propagatedCarry;
       let finalLimbValue = sumWithPropagatedCarry % BASE;
-      resultLimbsFinal.push(finalLimbValue);
-
-      // The new propagatedCarry for the *next* limb is the carry generated by *this* limb's GPU operation
-      // PLUS any carry generated by adding the current `propagatedCarry` to `currentLimbValueFromGPU`.
+      finalResultLimbs.push(finalLimbValue);
       propagatedCarry = carryGeneratedByGPUForThisPosition + Math.floor(sumWithPropagatedCarry / BASE);
     }
-
     if (propagatedCarry > 0) {
-      resultLimbsFinal.push(propagatedCarry); // Add any final carry
-      // If propagatedCarry itself is >= BASE, it needs to be split too.
-      // This loop handles cases where carry might be larger than BASE.
-      let lastLimbIdx = resultLimbsFinal.length -1;
-      while(resultLimbsFinal[lastLimbIdx] >= BASE) {
-        let newCarry = Math.floor(resultLimbsFinal[lastLimbIdx] / BASE);
-        resultLimbsFinal[lastLimbIdx] %= BASE;
-        if (lastLimbIdx + 1 < resultLimbsFinal.length) {
-             resultLimbsFinal[lastLimbIdx+1] += newCarry;
-        } else {
-            resultLimbsFinal.push(newCarry);
-        }
-        lastLimbIdx++;
+      // Handle remaining carry, potentially spanning multiple new limbs
+      let currentCarry = propagatedCarry;
+      while (currentCarry > 0) {
+        finalResultLimbs.push(currentCarry % BASE);
+        currentCarry = Math.floor(currentCarry / BASE);
       }
     }
-
-    // Remove leading zeros from limbs if any (e.g. if result is 0)
-    while (resultLimbsFinal.length > 1 && resultLimbsFinal[resultLimbsFinal.length - 1] === 0) {
-        resultLimbsFinal.pop();
+    while (finalResultLimbs.length > 1 && finalResultLimbs[finalResultLimbs.length - 1] === 0) {
+      finalResultLimbs.pop();
     }
 
+    // Cleanup WebGL objects
+    gl.deleteTexture(texNum1); gl.deleteTexture(texNum2); gl.deleteTexture(texCarryIn);
+    gl.deleteTexture(texOutput);
+    gl.deleteFramebuffer(fbo);
+    gl.deleteBuffer(vertexBuffer);
+    gl.deleteProgram(program);
+    gl.deleteShader(vertexShader); gl.deleteShader(fragmentShader);
 
-    const resultBigInt = new BigIntPrimitive("0"); // Create a dummy, then set limbs
-    resultBigInt.limbs = resultLimbsFinal;
-    resultBigInt.sign = 1; // Assuming positive result for now
+    // Construct result BigIntPrimitive
+    // Using simplified construction: create dummy, then set limbs and sign.
+    const resultNum = new BigIntPrimitive("0", this.canvas); // Pass canvas for future ops
+    resultNum.limbs = finalResultLimbs.length > 0 ? finalResultLimbs : [0]; // Ensure limbs array is not empty
+    resultNum.sign = this.sign; // Assuming positive + positive for now
 
-    return resultBigInt;
+    return resultNum;
   }
 }
 
-module.exports = { BigIntPrimitive };
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { BigIntPrimitive };
+}
