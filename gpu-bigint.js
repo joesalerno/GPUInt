@@ -99,9 +99,11 @@ async function createGPUBuffer(device, data, usage) {
 }
 
 async function readDataFromGPUBuffer(device, gpuBuffer, bufferSize) {
-    if (!device || typeof device.createBuffer !== 'function') { /* ... */ }
-    if (!gpuBuffer || !(gpuBuffer instanceof GPUBuffer)) { /* ... */ }
-    if (typeof bufferSize !== 'number' || bufferSize <= 0) { /* ... */ }
+    // Basic error checks for device, gpuBuffer, bufferSize (can be more verbose)
+    if (!device || !gpuBuffer || bufferSize <= 0) {
+        console.error("readDataFromGPUBuffer: Invalid arguments", {device, gpuBuffer, bufferSize});
+        return null;
+    }
 
     const stagingBuffer = device.createBuffer({
         size: bufferSize,
@@ -112,7 +114,7 @@ async function readDataFromGPUBuffer(device, gpuBuffer, bufferSize) {
     device.queue.submit([commandEncoder.finish()]);
     await stagingBuffer.mapAsync(GPUMapMode.READ, 0, bufferSize);
     const copyArrayBuffer = stagingBuffer.getMappedRange(0, bufferSize);
-    const data = new Uint32Array(copyArrayBuffer.slice(0));
+    const data = new Uint32Array(copyArrayBuffer.slice(0)); // Use slice to copy
     stagingBuffer.unmap();
     return data;
 }
@@ -207,8 +209,9 @@ class GPUBigMath {
 
     async add(bigintA_native, bigintB_native) {
         const device = this.device;
-        if (!device || typeof bigintA_native !== 'bigint' || typeof bigintB_native !== 'bigint') { /* error handling */ return null; }
-        if (bigintA_native < 0n || bigintB_native < 0n) { /* error handling for positive only */ return null; }
+        if (!device) { console.error("GPUBigMath.add: Invalid device."); return null; }
+        if (typeof bigintA_native !== 'bigint' || typeof bigintB_native !== 'bigint') { console.error("GPUBigMath.add: Inputs not BigInts."); return null; }
+        if (bigintA_native < 0n || bigintB_native < 0n) { console.error("GPUBigMath.add: Positive inputs only."); return null; }
 
         const objA = jsBigIntToU32Array(bigintA_native);
         const objB = jsBigIntToU32Array(bigintB_native);
@@ -220,7 +223,7 @@ class GPUBigMath {
         const bufferB = await createGPUBuffer(device, paddedLimbsB, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
         const bufferSumRaw = await createGPUBuffer(device, new Uint32Array(n), GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST);
         const bufferCarryRaw = await createGPUBuffer(device, new Uint32Array(n), GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST);
-        if (!bufferA || !bufferB || !bufferSumRaw || !bufferCarryRaw) { /* error handling */ return null; }
+        if (!bufferA || !bufferB || !bufferSumRaw || !bufferCarryRaw) { console.error("GPUBigMath.add: Buffer creation failed."); return null; }
 
         const shaderModule = device.createShaderModule({ code: limb_add_shader_wgsl });
         const pipeline = device.createComputePipeline({
@@ -228,7 +231,7 @@ class GPUBigMath {
             compute: { module: shaderModule, entryPoint: 'main' },
         });
         const bindGroup = device.createBindGroup({
-            layout: this.addBindGroupLayout, // Use pre-created layout
+            layout: this.addBindGroupLayout,
             entries: [
                 { binding: 0, resource: { buffer: bufferA } }, { binding: 1, resource: { buffer: bufferB } },
                 { binding: 2, resource: { buffer: bufferSumRaw } }, { binding: 3, resource: { buffer: bufferCarryRaw } },
@@ -243,7 +246,7 @@ class GPUBigMath {
 
         const sum_limbs_raw_array = await readDataFromGPUBuffer(device, bufferSumRaw, n * 4);
         const carry_limbs_raw_array = await readDataFromGPUBuffer(device, bufferCarryRaw, n * 4);
-        if (!sum_limbs_raw_array || !carry_limbs_raw_array) { /* error handling */ return null; }
+        if (!sum_limbs_raw_array || !carry_limbs_raw_array) { console.error("GPUBigMath.add: Readback failed."); return null; }
 
         const finalResultLimbsList = []; let currentCarry = 0n;
         for (let i = 0; i < n; i++) {
@@ -254,7 +257,7 @@ class GPUBigMath {
         if (currentCarry > 0n) { while (currentCarry > 0n) { finalResultLimbsList.push(Number(currentCarry & 0xFFFFFFFFn)); currentCarry >>= 32n; } }
         else if (finalResultLimbsList.length === 0) { finalResultLimbsList.push(0); }
         while (finalResultLimbsList.length > 1 && finalResultLimbsList[finalResultLimbsList.length - 1] === 0) { finalResultLimbsList.pop(); }
-        return u32ArrayToJsBigInt(new Uint32Array(finalResultLimbsList), true);
+        return u32ArrayToJsBigInt(finalResultLimbsList, true);
     }
 
     async subtract(bigintA_native, bigintB_native) {
@@ -262,7 +265,7 @@ class GPUBigMath {
         if (!device) { throw new Error("GPUBigMath.subtract: Invalid WebGPU device."); }
         if (typeof bigintA_native !== 'bigint' || typeof bigintB_native !== 'bigint') { throw new Error("GPUBigMath.subtract: Inputs must be native BigInts."); }
         if (bigintA_native < 0n || bigintB_native < 0n) { throw new Error("GPUBigMath.subtract: Currently only supports subtraction of positive BigInts."); }
-        if (bigintA_native < bigintB_native) { throw new Error("GPUBigMath.subtract: Subtraction would result in a negative number, which is not supported yet."); }
+        if (bigintA_native < bigintB_native) { throw new Error("GPUBigMath.subtract: Subtraction would result in a negative number."); }
 
         const objA = jsBigIntToU32Array(bigintA_native); const objB = jsBigIntToU32Array(bigintB_native);
         const n = Math.max(objA.limbs.length, objB.limbs.length);
@@ -273,7 +276,7 @@ class GPUBigMath {
         const bufferB = await createGPUBuffer(device, paddedLimbsB, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
         const bufferDiffRaw = await createGPUBuffer(device, new Uint32Array(n), GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST);
         const bufferBorrowOutRaw = await createGPUBuffer(device, new Uint32Array(n), GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST);
-        if (!bufferA || !bufferB || !bufferDiffRaw || !bufferBorrowOutRaw) { throw new Error("GPUBigMath.subtract: Failed to create one or more GPU buffers.");}
+        if (!bufferA || !bufferB || !bufferDiffRaw || !bufferBorrowOutRaw) { throw new Error("GPUBigMath.subtract: Buffer creation failed.");}
 
         const shaderModule = device.createShaderModule({ code: limb_subtract_shader_wgsl });
         const pipeline = device.createComputePipeline({
@@ -305,7 +308,7 @@ class GPUBigMath {
         if (propagatedBorrowIn === 1n) { console.error("GPUBigMath.subtract: Final propagated borrow is 1."); }
         while (finalResultLimbsList.length > 1 && finalResultLimbsList[finalResultLimbsList.length - 1] === 0) { finalResultLimbsList.pop(); }
         if (finalResultLimbsList.length === 0) finalResultLimbsList.push(0);
-        return u32ArrayToJsBigInt(new Uint32Array(finalResultLimbsList), true);
+        return u32ArrayToJsBigInt(finalResultLimbsList, true);
     }
 
     async multiply(bigintA_native, bigintB_native) {
@@ -322,7 +325,11 @@ class GPUBigMath {
         const objA = jsBigIntToU32Array(absA); const objB = jsBigIntToU32Array(absB);
         const limbsA = objA.limbs; const limbsB = objB.limbs;
         const m = limbsA.length; const n = limbsB.length;
-        if (m === 0 || n === 0) return 0n;
+        if (m === 0 || n === 0) return 0n; // Should be caught by absA/absB checks, but good for safety
+
+        const numPartialProducts = m * n;
+        // Add console log to verify m, n, and numPartialProducts before buffer creation
+        console.log({ m, n, numPartialProducts, method: "multiply" });
 
         const paramsArray = new Uint32Array([m, n]);
         const paramsBuffer = device.createBuffer({ size: paramsArray.byteLength, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, });
@@ -330,9 +337,12 @@ class GPUBigMath {
 
         const bufferA = await createGPUBuffer(device, limbsA, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
         const bufferB = await createGPUBuffer(device, limbsB, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
-        const numPartialProducts = m * n;
-        const bufferPPlow = await createGPUBuffer(device, new Uint32Array(numPartialProducts), GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST);
-        const bufferPPhigh = await createGPUBuffer(device, new Uint32Array(numPartialProducts), GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST);
+
+        // Explicitly create zeroed Uint32Array for initial data for partial product buffers
+        const initialPPData = new Uint32Array(numPartialProducts);
+        const bufferPPlow = await createGPUBuffer(device, initialPPData, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST);
+        const bufferPPhigh = await createGPUBuffer(device, initialPPData, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST);
+
         if (!bufferA || !bufferB || !bufferPPlow || !bufferPPhigh || !paramsBuffer) { throw new Error("GPUBigMath.multiply: Failed to create one or more GPU buffers."); }
 
         const shaderModule = device.createShaderModule({ code: limb_multiply_shader_wgsl });
@@ -377,6 +387,6 @@ class GPUBigMath {
         while (carry > 0n) { final_u32_limbs_list.push(Number(carry & 0xFFFFFFFFn)); carry >>= 32n; }
         while (final_u32_limbs_list.length > 1 && final_u32_limbs_list[final_u32_limbs_list.length - 1] === 0) { final_u32_limbs_list.pop(); }
         if (final_u32_limbs_list.length === 0) { final_u32_limbs_list.push(0); }
-        return u32ArrayToJsBigInt(new Uint32Array(final_u32_limbs_list), finalSign);
+        return u32ArrayToJsBigInt(final_u32_limbs_list, finalSign);
     }
 }
