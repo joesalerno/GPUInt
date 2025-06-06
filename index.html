@@ -1,89 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>WebGL BigInt Test</title>
-    <style>
-        body { font-family: sans-serif; }
-        canvas { border: 1px solid black; }
-    </style>
-</head>
-<body>
-    <h1>WebGL BigInt Test Page</h1>
-    <canvas id="glCanvas" width="256" height="256"></canvas>
-    <p>Check the browser console for output.</p>
-
-    <!-- Scripts are now loaded as modules -->
-    <script type="module">
-        try {
-            import { BigIntPrimitive } from './src/bigint.js';
-
-            // Shader sources (will be used by bigint.js if still relying on global window properties)
-            // These are global consts within this module, but bigint.js needs them on window.
-            // For now, bigint.js expects window.vertexShaderSrc and window.fragmentShaderSrc
-            const additionVertexShaderSource = `
-                attribute vec2 a_position;
-                varying vec2 v_texCoord;
-                void main() {
-                    gl_Position = vec4(a_position, 0.0, 1.0);
-                    v_texCoord = a_position * 0.5 + 0.5;
-                }
-            `;
-            window.vertexShaderSrc = additionVertexShaderSource; // Ensure it's on window for bigint.js
-
-            const additionFragmentShaderSource = `
-                precision highp float;
-                uniform sampler2D u_num1Texture;
-                uniform sampler2D u_num2Texture;
-                uniform sampler2D u_carryTexture;
-                varying vec2 v_texCoord;
-                const float BASE = 10000.0;
-                void main() {
-                    float limb1 = texture2D(u_num1Texture, v_texCoord).r;
-                    float limb2 = texture2D(u_num2Texture, v_texCoord).r;
-                    float carryIn = texture2D(u_carryTexture, v_texCoord).r;
-                    float sum = limb1 + limb2 + carryIn;
-                    float resultLimb = mod(sum, BASE);
-                    float carryOut = floor(sum / BASE);
-                    gl_FragColor = vec4(resultLimb, carryOut, 0.0, 1.0);
-                }
-            `;
-            window.fragmentShaderSrc = additionFragmentShaderSource; // Ensure it's on window for bigint.js
-
-            function manualTest() {
-                console.log("Starting manual BigIntPrimitive test with WebGL...");
-                const canvas = document.getElementById('glCanvas');
-                if (!canvas) {
-                    console.error("Canvas element not found!");
-                    return;
-                }
-                try {
-                    const num1Str = "12345";
-                    const num2Str = "67890";
-                    console.log(`Attempting to add ${num1Str} and ${num2Str}`);
-                    const bigInt1 = new BigIntPrimitive(num1Str, canvas);
-                    const bigInt2 = new BigIntPrimitive(num2Str, canvas);
-                    console.log("BigInts created:", bigInt1.toString(), bigInt2.toString());
-                    const sumBigInt = bigInt1.add(bigInt2);
-                    if (sumBigInt) {
-                        console.log(`Sum: ${sumBigInt.toString()}`);
-                        const expectedSum = "80235";
-                        if (sumBigInt.toString() === expectedSum) {
-                            console.info("Manual test PASSED!");
-                        } else {
-                            console.error(`Manual test FAILED! Expected ${expectedSum}, got ${sumBigInt.toString()}`);
-                        }
-                    } else {
-                        console.error("Addition returned undefined or null. WebGL part might have failed.");
-                    }
-                } catch (e) {
-                    console.error("Error during manual test execution:", e.message, e.stack);
-                }
-            }
-            window.onload = manualTest;
-
-        } catch (e) {
-            console.error("TOP LEVEL ERROR IN MODULE SCRIPT:", e.message, e.stack);
-        }
-    </script>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
