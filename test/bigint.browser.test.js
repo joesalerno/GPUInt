@@ -1,14 +1,9 @@
 // test/bigint.browser.test.js
 
-// const PAGE_URL = 'http://localhost:8081/index.html'; // Comment out for now
+const PAGE_URL = 'http://localhost:8081/index.html'; // Restore this
 
 describe('BigIntPrimitive Browser Tests', () => {
-    it('should be a placeholder test and simply pass', () => {
-        expect(true).toBe(true);
-    });
 
-    // Commenting out all Puppeteer related tests for now to isolate SyntaxError
-    /*
     beforeAll(async () => {
         await page.goto(PAGE_URL, { waitUntil: 'networkidle0' });
 
@@ -16,7 +11,8 @@ describe('BigIntPrimitive Browser Tests', () => {
             console.log(`PAGE_CONSOLE: [${msg.type()}] ${msg.text()}`);
         });
         page.on('pageerror', error => {
-            console.log(`PAGE_ERROR: ${error.message}\nStack: ${error.stack}`);
+            console.log(`PAGE_ERROR: ${error.message}
+Stack: ${error.stack}`);
         });
         page.on('requestfailed', request => {
             console.log(`PAGE_REQUEST_FAILED: ${request.method()} ${request.url()} (${request.failure().errorText})`);
@@ -28,6 +24,12 @@ describe('BigIntPrimitive Browser Tests', () => {
         });
     });
 
+    it('should be a placeholder test and simply pass', () => {
+        expect(true).toBe(true);
+    });
+
+    // Commenting out all Puppeteer related tests for now to isolate SyntaxError
+    /*
     it('should load the page and find the canvas', async () => {
         const canvas = await page.$('#glCanvas');
         expect(canvas).not.toBeNull();
@@ -47,7 +49,7 @@ describe('BigIntPrimitive Browser Tests', () => {
                 }
             };
             const timeoutId = setTimeout(() => {
-                if (!foundMessage) { // Check flag before rejecting
+                if (!foundMessage) {
                     page.off('console', specificConsoleListener);
                     reject(new Error(`Timeout waiting for message: "${expectedMessage}" after 15s`));
                 }
