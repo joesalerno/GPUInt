@@ -99,23 +99,30 @@ class BigIntPrimitive {
     }
     // TODO: Sign handling
 
-    const gl = window.webglUtils.initWebGL(this.canvas);
+    const webglUtils = (typeof window !== 'undefined' && window.webglUtils) ? window.webglUtils : null;
+    const vsSource = (typeof window !== 'undefined' && window.vertexShaderSrc) ? window.vertexShaderSrc : null;
+    const fsSource = (typeof window !== 'undefined' && window.fragmentShaderSrc) ? window.fragmentShaderSrc : null;
+
+    if (!webglUtils) {
+        console.error("BigIntPrimitive.add: WebGL utilities not found (window.webglUtils is undefined). Cannot proceed with WebGL operations.");
+        return null;
+    }
+    // Note: vsSource and fsSource being null is checked later, after gl context is obtained.
+
+    const gl = webglUtils.initWebGL(this.canvas);
     if (!gl) {
-      console.error("Failed to initialize WebGL context.");
+      console.error("Failed to initialize WebGL context (returned by webglUtils.initWebGL).");
       return null;
     }
 
-    // Shader sources from global scope (index.html)
-    const vsSource = window.vertexShaderSrc;
-    const fsSource = window.fragmentShaderSrc;
     if (!vsSource || !fsSource) {
-        console.error("Shader sources not found on window object.");
+        console.error("Shader sources not found on window object (vertexShaderSrc or fragmentShaderSrc is undefined).");
         return null;
     }
 
-    const vertexShader = window.webglUtils.createShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = window.webglUtils.createShader(gl, gl.FRAGMENT_SHADER, fsSource);
-    const program = window.webglUtils.createProgram(gl, vertexShader, fragmentShader);
+    const vertexShader = webglUtils.createShader(gl, gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = webglUtils.createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+    const program = webglUtils.createProgram(gl, vertexShader, fragmentShader);
 
     if (!program) {
       console.error("Failed to create shader program.");
