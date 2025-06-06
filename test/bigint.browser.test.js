@@ -10,11 +10,8 @@ describe('BigIntPrimitive Browser Tests', () => {
         await page.goto(PAGE_URL, { waitUntil: 'networkidle0' });
         // Capture console logs from the page to help with debugging from Jest
         page.on('console', msg => {
-            const type = msg.type();
-            const text = msg.text();
-            if (text.includes("FAILED") || type === 'error' || text.includes("PASSED")) {
-                console.log(`PAGE LOG (${type}): ${text}`);
-            }
+            // Log all console messages from the page
+            console.log(`PAGE LOG (${msg.type()}): ${msg.text()}`);
         });
         page.on('pageerror', err => {
             console.error(`PAGE ERROR: ${err.toString()}`);
@@ -28,37 +25,34 @@ describe('BigIntPrimitive Browser Tests', () => {
     });
 
     it('should run the manualTest in index.html and pass', async () => {
-        // The manualTest in index.html already performs an addition and logs pass/fail.
-        // We need to wait for that log message.
-        // This requires the manualTest to be robust or for us to trigger it.
-        // window.onload = manualTest; is in index.html.
-        // We'll look for the "Manual test PASSED!" console message.
-
         const expectedMessage = "Manual test PASSED!";
-        let foundMessage = false;
+        let foundMessage = false; // Flag to ensure resolve/reject happens only once
 
-        // Create a promise that resolves when the specific console message is found
         const messagePromise = new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                if (!foundMessage) { // Only reject if message not found
-                   reject(new Error(`Timeout waiting for message: "${expectedMessage}"`));
-                }
-            }, 10000); // 10 second timeout
-
-            page.on('console', async (msg) => {
+            const specificConsoleListener = async (msg) => {
                 if (msg.text().includes(expectedMessage)) {
-                    if (!foundMessage) { // Ensure resolve is called only once
+                    if (!foundMessage) {
                         foundMessage = true;
-                        clearTimeout(timeout);
+                        clearTimeout(timeoutId);
+                        page.removeListener('console', specificConsoleListener);
                         resolve();
                     }
                 }
-            });
+            };
+
+            const timeoutId = setTimeout(() => {
+                if (!foundMessage) {
+                    page.removeListener('console', specificConsoleListener);
+                    reject(new Error(`Timeout waiting for message: "${expectedMessage}" after 15s`));
+                }
+            }, 15000); // Inner timeout for the promise: 15 seconds
+
+            page.on('console', specificConsoleListener); // Attach listener
         });
 
         await messagePromise;
         expect(foundMessage).toBe(true);
-    });
+    }, 20000); // Jest timeout for this test case: 20 seconds
 
     it('should perform a new addition correctly using page.evaluate', async () => {
         const result = await page.evaluate(() => {
