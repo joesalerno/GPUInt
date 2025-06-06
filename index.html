@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GPU BigInt Test</title>
+    <style>
+        #test-results-list li { margin-bottom: 5px; }
+        .passed { color: green; }
+        .failed { color: red; }
+        .summary { font-weight: bold; margin-bottom: 10px;}
+    </style>
+</head>
+<body>
+    <h1>GPU BigInt Test</h1>
+    <div id="test-summary" class="summary">Running tests...</div>
+    <ul id="test-results-list"></ul>
+
+    <script src="gpu-bigint.js"></script>
+    <script>
+        let testsPassed = 0;
+        let testsTotal = 0;
+        const testResultsList = document.getElementById('test-results-list');
+        const testSummaryDiv = document.getElementById('test-summary');
+
+        async function runTest(description, testFn) {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${description}: `;
+            testResultsList.appendChild(listItem);
+            testsTotal++;
+            console.log(`--- Running test: ${description} ---`);
+
+            try {
+                const success = await testFn();
+                if (success) {
+                    listItem.textContent += "PASSED";
+                    listItem.classList.add("passed");
+                    testsPassed++;
+                    console.log(`Result: PASSED - ${description}`);
+                } else {
+                    listItem.textContent += "FAILED (assertion failed)";
+                    listItem.classList.add("failed");
+                    console.error(`Result: FAILED (assertion failed) - ${description}`);
+                }
+            } catch (e) {
+                listItem.textContent += `FAILED (exception: ${e.message})`;
+                listItem.classList.add("failed");
+                console.error(`Result: FAILED (exception) - ${description}:`, e);
+            }
+            testSummaryDiv.textContent = `${testsPassed}/${testsTotal} tests passed.`;
+        }
+
+        async function main() {
+            const device = await initWebGPU();
+            if (!device) {
+                testSummaryDiv.textContent = "WebGPU initialization failed. Cannot run tests.";
+                testSummaryDiv.classList.add("failed");
+                console.error("WebGPU initialization failed. Cannot run tests.");
+                return;
+            }
+
+            // --- GPUBigInt class conversion tests ---
+            await runTest("GPUBigInt: Large number conversion", async () => {
+                const originalBigInt = 12345678901234567890n;
+                console.log("Original BigInt:", originalBigInt);
+                const gpuBigInt = new GPUBigInt(originalBigInt);
+                console.log("GPUBigInt internal array:", gpuBigInt.u32Array);
+                const convertedBigInt = gpuBigInt.toNativeBigInt();
+                console.log("Converted BigInt:", convertedBigInt);
+                return originalBigInt === convertedBigInt;
+            });
+
+            await runTest("GPUBigInt: Zero conversion", async () => {
+                const originalBigInt = 0n;
+                const gpuBigInt = new GPUBigInt(originalBigInt);
+                const convertedBigInt = gpuBigInt.toNativeBigInt();
+                return originalBigInt === convertedBigInt;
+            });
+
+            // --- GPU buffer functions tests ---
+            await runTest("Buffer: Create and Readback", async () => {
+                const originalArray = new Uint32Array([10, 20, 30, 40, 50]);
+                console.log("Original Uint32Array for buffer test:", originalArray);
+                const gpuBuffer = await createGPUBuffer(device, originalArray, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
+                if (!gpuBuffer) return false;
+                const readBackArray = await readDataFromGPUBuffer(device, gpuBuffer, originalArray.byteLength);
+                if (!readBackArray || originalArray.length !== readBackArray.length) return false;
+                for (let i = 0; i < originalArray.length; i++) {
+                    if (originalArray[i] !== readBackArray[i]) return false;
+                }
+                return true;
+            });
+
+            // Instantiate GPUBigMath
+            let gpuBigMath = null;
+            if (device) {
+                gpuBigMath = new GPUBigMath(device);
+                console.log("\nGPUBigMath instance created for arithmetic tests.");
+            } else {
+                // This case should not be hit if the first device check fails.
+                testSummaryDiv.textContent += " Cannot run arithmetic tests.";
+                return;
+            }
+
+            // --- GPUBigMath.add() tests ---
+            if (gpuBigMath) {
+                const addTestCases = [
+                    { a: 1n, b: 2n, description: "1n + 2n" }, { a: 0n, b: 0n, description: "0n + 0n" },
+                    { a: 0xFFFFFFFFn, b: 1n, description: "0xFFFFFFFFn + 1n (carry)" },
+                    { a: 12345678901234567890n, b: 98765432109876543210n, description: "Large numbers addition" }
+                ];
+                for (const tc of addTestCases) {
+                    await runTest(`Addition: ${tc.description}`, async () => {
+                        const expected = tc.a + tc.b;
+                        const result = await gpuBigMath.add(tc.a, tc.b);
+                        if (result !== expected) {
+                            console.error(`Add Failed: ${tc.description}. Expected ${expected}, got ${result}`);
+                            return false;
+                        }
+                        return true;
+                    });
+                }
+            }
+
+            // --- GPUBigMath.multiply() tests ---
+            if (gpuBigMath) {
+                const multiplyTestCases = [
+                    { a: 0n, b: 123n, description: "0n * 123n" }, { a: 2n, b: 3n, description: "2n * 3n" },
+                    { a: -2n, b: 3n, description: "-2n * 3n" }, { a: -2n, b: -3n, description: "-2n * -3n" },
+                    { a: 0xFFFFFFFFn, b: 0xFFFFFFFFn, description: "0xFFFFFFFFn * 0xFFFFFFFFn" },
+                    { a: 123456789n, b: 987654321n, description: "Large positive numbers multiplication" }
+                ];
+                for (const tc of multiplyTestCases) {
+                    await runTest(`Multiply: ${tc.description}`, async () => {
+                        const expected = tc.a * tc.b;
+                        const result = await gpuBigMath.multiply(tc.a, tc.b);
+                        if (result !== expected) {
+                            console.error(`Multiply Failed: ${tc.description}. Expected ${expected}, got ${result}`);
+                            return false;
+                        }
+                        return true;
+                    });
+                }
+            }
+
+            // --- GPUBigMath.subtract() tests ---
+            if (gpuBigMath) {
+                const subtractTestCases = [
+                    { a: 3n, b: 1n, description: "3n - 1n" }, { a: 0x100000000n, b: 1n, description: "0x100000000n - 1n (borrow)" },
+                    { a: 100n, b: 100n, description: "100n - 100n (zero)" },
+                    { a: 12345678901234567890n, b: 9876543210987654321n, description: "Large numbers subtraction (A > B)" }
+                ];
+                for (const tc of subtractTestCases) {
+                    await runTest(`Subtract: ${tc.description}`, async () => {
+                        const expected = tc.a - tc.b;
+                        const result = await gpuBigMath.subtract(tc.a, tc.b);
+                        if (result !== expected) {
+                            console.error(`Subtract Failed: ${tc.description}. Expected ${expected}, got ${result}`);
+                            return false;
+                        }
+                        return true;
+                    });
+                }
+
+                // Test error case for subtraction (A < B)
+                await runTest("Subtract: Error for A < B (1n - 2n)", async () => {
+                    try {
+                        await gpuBigMath.subtract(1n, 2n);
+                        console.error("Subtract Error Test Failed: Should have thrown for A < B.");
+                        return false; // Should not reach here
+                    } catch (e) {
+                        if (e.message.includes("Subtraction would result in a negative number")) {
+                            return true; // Correctly threw
+                        }
+                        console.error(`Subtract Error Test Failed: Unexpected error message "${e.message}"`);
+                        throw e; // Re-throw unexpected error to be caught by outer runTest
+                    }
+                });
+            }
+
+            // Final summary update
+            testSummaryDiv.textContent = `${testsPassed}/${testsTotal} tests passed. ${testsTotal - testsPassed > 0 ? 'See console for details on failures.' : 'All tests green!'}`;
+            if (testsPassed === testsTotal && testsTotal > 0) {
+                testSummaryDiv.classList.add("passed");
+                testSummaryDiv.classList.remove("failed");
+            } else if (testsTotal > 0) {
+                testSummaryDiv.classList.add("failed");
+                testSummaryDiv.classList.remove("passed");
+            }
+            console.log(`--- All tests finished: ${testsPassed}/${testsTotal} passed. ---`);
+        }
+        main();
+    </script>
+</body>
+</html>
