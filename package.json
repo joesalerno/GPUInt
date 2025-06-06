@@ -22,6 +22,7 @@
     "jest-puppeteer": "^10.0.1",
     "http-server": "^14.1.1",
     "@babel/core": "^7.24.0",
-    "@babel/preset-env": "^7.24.0"
+    "@babel/preset-env": "^7.24.0",
+    "babel-jest": "^29.7.0"
   }
 }
