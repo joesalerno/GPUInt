@@ -6,7 +6,7 @@
   "main": "src/bigint.js",
   "scripts": {
     "test": "node test/bigint.test.js",
-    "test:browser": "jest --config jest.config.cjs"
+    "test:browser": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.cjs"
   },
   "keywords": [
     "bigint",
@@ -23,6 +23,7 @@
     "http-server": "^14.1.1",
     "@babel/core": "^7.24.0",
     "@babel/preset-env": "^7.24.0",
-    "babel-jest": "^29.7.0"
+    "babel-jest": "^29.7.0",
+    "cross-env": "^7.0.3"
   }
 }
