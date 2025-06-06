@@ -8,15 +8,36 @@ const PAGE_URL = 'http://localhost:8081/index.html';
 describe('BigIntPrimitive Browser Tests', () => {
     beforeAll(async () => {
         await page.goto(PAGE_URL, { waitUntil: 'networkidle0' });
-        // Capture console logs from the page to help with debugging from Jest
+
         page.on('console', msg => {
-            // Log all console messages from the page
-            console.log(`PAGE LOG (${msg.type()}): ${msg.text()}`);
-        });
-        page.on('pageerror', err => {
-            console.error(`PAGE ERROR: ${err.toString()}`);
+            // Keep this as is, it's good for logging all console messages from the page
+            console.log(`PAGE_CONSOLE: [${msg.type()}] ${msg.text()}`);
         });
 
+        page.on('pageerror', error => {
+            // This captures uncaught exceptions in the page
+            console.log(`PAGE_ERROR: ${error.message}
+Stack: ${error.stack}`);
+        });
+
+        page.on('requestfailed', request => {
+            // Log failed network requests (e.g., for JS modules, shaders if loaded externally)
+            console.log(`PAGE_REQUEST_FAILED: ${request.method()} ${request.url()} (${request.failure().errorText})`);
+        });
+
+        // Optional: Log successful JS requests to confirm modules are loading
+        page.on('requestfinished', request => {
+           if (request.resourceType() === 'script') {
+               console.log(`PAGE_SCRIPT_LOADED: ${request.method()} ${request.url()} - Status: ${request.response().status()}`);
+           }
+        });
+
+        // Optional: Log responses for more details, especially if there are issues with served files
+        // page.on('response', response => {
+        //    if (!response.ok() || response.request().resourceType() === 'script') {
+        //        console.log(`PAGE_RESPONSE: ${response.status()} ${response.url()}`);
+        //    }
+        // });
     });
 
     it('should load the page and find the canvas', async () => {
