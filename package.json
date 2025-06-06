@@ -6,7 +6,7 @@
   "main": "src/bigint.js",
   "scripts": {
     "test": "node test/bigint.test.js",
-    "test:browser": "jest --config jest.config.js"
+    "test:browser": "jest --config jest.config.cjs"
   },
   "keywords": [
     "bigint",

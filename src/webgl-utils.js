@@ -20,7 +20,6 @@ export function initWebGL(canvas) {
 
     if (!gl) {
         console.error("WebGL not supported or context creation failed.");
-        alert("Unable to initialize WebGL. Your browser may not support it.");
         return null;
     }
     console.log("WebGL context obtained.");
