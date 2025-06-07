@@ -33,6 +33,20 @@ function App() {
   const [mul2ResultStr, setMul2ResultStr] = useState("");
   const [mul2ErrorStr, setMul2ErrorStr] = useState("");
 
+  // States for Division Test 1
+  const [div1DividendStr, setDiv1DividendStr] = useState("12345");
+  const [div1DivisorStr, setDiv1DivisorStr] = useState("67");
+  const [div1QuotientStr, setDiv1QuotientStr] = useState("");
+  const [div1RemainderStr, setDiv1RemainderStr] = useState("");
+  const [div1ErrorStr, setDiv1ErrorStr] = useState("");
+
+  // States for Division Test 2
+  const [div2DividendStr, setDiv2DividendStr] = useState("103");
+  const [div2DivisorStr, setDiv2DivisorStr] = useState("-20");
+  const [div2QuotientStr, setDiv2QuotientStr] = useState("");
+  const [div2RemainderStr, setDiv2RemainderStr] = useState("");
+  const [div2ErrorStr, setDiv2ErrorStr] = useState("");
+
   useEffect(() => {
     const canvas = document.getElementById('webglCanvas');
     if (!canvas) {
@@ -43,6 +57,8 @@ function App() {
       setSub2ErrorStr(errMsg);
       setMul1ErrorStr(errMsg);
       setMul2ErrorStr(errMsg);
+      setDiv1ErrorStr(errMsg);
+      setDiv2ErrorStr(errMsg);
       const outputDiv = document.getElementById('testOutput');
       if (outputDiv) outputDiv.innerText = `Error: ${errMsg}`;
       return;
@@ -148,9 +164,11 @@ function App() {
       if (sub2ErrorStr) outputDiv.innerText += `\nSub2 Error: ${sub2ErrorStr}`;
       if (mul1ErrorStr) outputDiv.innerText += `\nMul1 Error: ${mul1ErrorStr}`;
       if (mul2ErrorStr) outputDiv.innerText += `\nMul2 Error: ${mul2ErrorStr}`;
+      if (div1ErrorStr) outputDiv.innerText += `\nDiv1 Error: ${div1ErrorStr}`;
+      if (div2ErrorStr) outputDiv.innerText += `\nDiv2 Error: ${div2ErrorStr}`;
     }
 
-  }, [addNum1Str, addNum2Str, sub1Num1Str, sub1Num2Str, sub2Num1Str, sub2Num2Str, mul1Num1Str, mul1Num2Str, mul2Num1Str, mul2Num2Str]);
+  }, [addNum1Str, addNum2Str, sub1Num1Str, sub1Num2Str, sub2Num1Str, sub2Num2Str, mul1Num1Str, mul1Num2Str, mul2Num1Str, mul2Num2Str, div1DividendStr, div1DivisorStr, div2DividendStr, div2DivisorStr]);
 
   return (
     <div className="App">
@@ -184,6 +202,22 @@ function App() {
         <h2>Multiplication Test 2 (Positive * Negative)</h2>
         <p>{mul2Num1Str} * {mul2Num2Str} = {mul2ResultStr}</p>
         {mul2ErrorStr && <p style={{ color: 'red' }}>Error: {mul2ErrorStr}</p>}
+      </div>
+
+      <div>
+        <h2>Division Test 1 (Positive / Positive)</h2>
+        <p>{div1DividendStr} / {div1DivisorStr}</p>
+        <p>Quotient: {div1QuotientStr}</p>
+        <p>Remainder: {div1RemainderStr}</p>
+        {div1ErrorStr && <p style={{ color: 'red' }}>Error: {div1ErrorStr}</p>}
+      </div>
+
+      <div>
+        <h2>Division Test 2 (Positive / Negative)</h2>
+        <p>{div2DividendStr} / {div2DivisorStr}</p>
+        <p>Quotient: {div2QuotientStr}</p>
+        <p>Remainder: {div2RemainderStr}</p>
+        {div2ErrorStr && <p style={{ color: 'red' }}>Error: {div2ErrorStr}</p>}
       </div>
 
       <div id="testOutput" style={{ whiteSpace: 'pre-wrap', marginTop: '20px', border: '1px solid #ccc', padding: '10px' }}>
