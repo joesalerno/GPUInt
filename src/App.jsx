@@ -68,92 +68,111 @@ function App() {
 
     // Addition Test
     try {
+      setAddErrorStr(""); // Clear previous error
       const n1 = new BigIntPrimitive(addNum1Str, canvas);
       const n2 = new BigIntPrimitive(addNum2Str, canvas);
       const res = n1.add(n2);
-      if (res) {
-        setSumStr(res.toString());
-        outputText += `Addition: ${addNum1Str} + ${addNum2Str} = ${res.toString()}\n`;
-      } else {
-        setAddErrorStr("BigInt addition returned error. Check console.");
-        outputText += `Addition: ${addNum1Str} + ${addNum2Str} = Error\n`;
-      }
+      setSumStr(res.toString());
+      outputText += `Addition: ${addNum1Str} + ${addNum2Str} = ${res.toString()}\n`;
     } catch (e) {
-      console.error("Error during BigInt addition:", e);
-      setAddErrorStr(`Error: ${e.message}`);
+      console.error("Error during Addition:", e);
+      setAddErrorStr(e.message);
+      setSumStr("Error");
       outputText += `Addition: ${addNum1Str} + ${addNum2Str} = Error (${e.message})\n`;
     }
 
     // Subtraction Test 1
     try {
+      setSub1ErrorStr(""); // Clear previous error
       const val1 = new BigIntPrimitive(sub1Num1Str, canvas);
       const val2 = new BigIntPrimitive(sub1Num2Str, canvas);
       const diff1 = val1.subtract(val2);
-      if (diff1) {
-        setSub1ResultStr(diff1.toString());
-        outputText += `Subtraction 1: ${sub1Num1Str} - ${sub1Num2Str} = ${diff1.toString()}\n`;
-      } else {
-        setSub1ErrorStr("BigInt subtraction (1) returned error. Check console.");
-        outputText += `Subtraction 1: ${sub1Num1Str} - ${sub1Num2Str} = Error\n`;
-      }
+      setSub1ResultStr(diff1.toString());
+      outputText += `Subtraction 1: ${sub1Num1Str} - ${sub1Num2Str} = ${diff1.toString()}\n`;
     } catch (e) {
-      console.error("Error during BigInt subtraction (1):", e);
-      setSub1ErrorStr(`Error: ${e.message}`);
+      console.error("Error during Subtraction 1:", e);
+      setSub1ErrorStr(e.message);
+      setSub1ResultStr("Error");
       outputText += `Subtraction 1: ${sub1Num1Str} - ${sub1Num2Str} = Error (${e.message})\n`;
     }
 
     // Subtraction Test 2
     try {
+      setSub2ErrorStr(""); // Clear previous error
       const val3 = new BigIntPrimitive(sub2Num1Str, canvas);
       const val4 = new BigIntPrimitive(sub2Num2Str, canvas);
       const diff2 = val3.subtract(val4);
-      if (diff2) {
-        setSub2ResultStr(diff2.toString());
-        outputText += `Subtraction 2: ${sub2Num1Str} - ${sub2Num2Str} = ${diff2.toString()}\n`;
-      } else {
-        setSub2ErrorStr("BigInt subtraction (2) returned error. Check console.");
-        outputText += `Subtraction 2: ${sub2Num1Str} - ${sub2Num2Str} = Error\n`;
-      }
+      setSub2ResultStr(diff2.toString());
+      outputText += `Subtraction 2: ${sub2Num1Str} - ${sub2Num2Str} = ${diff2.toString()}\n`;
     } catch (e) {
-      console.error("Error during BigInt subtraction (2):", e);
-      setSub2ErrorStr(`Error: ${e.message}`);
+      console.error("Error during Subtraction 2:", e);
+      setSub2ErrorStr(e.message);
+      setSub2ResultStr("Error");
       outputText += `Subtraction 2: ${sub2Num1Str} - ${sub2Num2Str} = Error (${e.message})\n`;
     }
 
     // Multiplication Test 1 (positive * positive)
     try {
+      setMul1ErrorStr(""); // Clear previous error
       const mVal1 = new BigIntPrimitive(mul1Num1Str, canvas);
       const mVal2 = new BigIntPrimitive(mul1Num2Str, canvas);
       const prod1 = mVal1.multiply(mVal2);
-      if (prod1) {
-        setMul1ResultStr(prod1.toString());
-        outputText += `Multiplication 1: ${mul1Num1Str} * ${mul1Num2Str} = ${prod1.toString()}\n`;
-      } else {
-        setMul1ErrorStr("BigInt multiplication (1) returned error. Check console.");
-        outputText += `Multiplication 1: ${mul1Num1Str} * ${mul1Num2Str} = Error\n`;
-      }
+      setMul1ResultStr(prod1.toString());
+      outputText += `Multiplication 1: ${mul1Num1Str} * ${mul1Num2Str} = ${prod1.toString()}\n`;
     } catch (e) {
-      console.error("Error during BigInt multiplication (1):", e);
-      setMul1ErrorStr(`Error: ${e.message}`);
+      console.error("Error during Multiplication 1:", e);
+      setMul1ErrorStr(e.message);
+      setMul1ResultStr("Error");
       outputText += `Multiplication 1: ${mul1Num1Str} * ${mul1Num2Str} = Error (${e.message})\n`;
     }
 
     // Multiplication Test 2 (positive * negative)
     try {
+      setMul2ErrorStr(""); // Clear previous error
       const mVal3 = new BigIntPrimitive(mul2Num1Str, canvas);
       const mVal4 = new BigIntPrimitive(mul2Num2Str, canvas);
       const prod2 = mVal3.multiply(mVal4);
-      if (prod2) {
-        setMul2ResultStr(prod2.toString());
-        outputText += `Multiplication 2: ${mul2Num1Str} * ${mul2Num2Str} = ${prod2.toString()}\n`;
-      } else {
-        setMul2ErrorStr("BigInt multiplication (2) returned error. Check console.");
-        outputText += `Multiplication 2: ${mul2Num1Str} * ${mul2Num2Str} = Error\n`;
-      }
+      setMul2ResultStr(prod2.toString());
+      outputText += `Multiplication 2: ${mul2Num1Str} * ${mul2Num2Str} = ${prod2.toString()}\n`;
     } catch (e) {
-      console.error("Error during BigInt multiplication (2):", e);
-      setMul2ErrorStr(`Error: ${e.message}`);
+      console.error("Error during Multiplication 2:", e);
+      setMul2ErrorStr(e.message);
+      setMul2ResultStr("Error");
       outputText += `Multiplication 2: ${mul2Num1Str} * ${mul2Num2Str} = Error (${e.message})\n`;
+    }
+
+    // Division Test 1
+    try {
+      setDiv1ErrorStr(""); // Clear previous error
+      const d1Val1 = new BigIntPrimitive(div1DividendStr, canvas);
+      const d1Val2 = new BigIntPrimitive(div1DivisorStr, canvas);
+      const { quotient, remainder } = d1Val1.divide(d1Val2);
+      setDiv1QuotientStr(quotient.toString());
+      setDiv1RemainderStr(remainder.toString());
+      outputText += `Division 1: ${div1DividendStr} / ${div1DivisorStr} = Q: ${quotient.toString()}, R: ${remainder.toString()}\n`;
+    } catch (e) {
+      console.error("Error during Division 1:", e);
+      setDiv1ErrorStr(e.message);
+      setDiv1QuotientStr("Error");
+      setDiv1RemainderStr("Error");
+      outputText += `Division 1: ${div1DividendStr} / ${div1DivisorStr} = Error (${e.message})\n`;
+    }
+
+    // Division Test 2
+    try {
+      setDiv2ErrorStr(""); // Clear previous error
+      const d2Val1 = new BigIntPrimitive(div2DividendStr, canvas);
+      const d2Val2 = new BigIntPrimitive(div2DivisorStr, canvas);
+      const { quotient, remainder } = d2Val1.divide(d2Val2);
+      setDiv2QuotientStr(quotient.toString());
+      setDiv2RemainderStr(remainder.toString());
+      outputText += `Division 2: ${div2DividendStr} / ${div2DivisorStr} = Q: ${quotient.toString()}, R: ${remainder.toString()}\n`;
+    } catch (e) {
+      console.error("Error during Division 2:", e);
+      setDiv2ErrorStr(e.message);
+      setDiv2QuotientStr("Error");
+      setDiv2RemainderStr("Error");
+      outputText += `Division 2: ${div2DividendStr} / ${div2DivisorStr} = Error (${e.message})\n`;
     }
 
     const outputDiv = document.getElementById('testOutput');
