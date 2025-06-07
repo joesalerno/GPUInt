@@ -3,17 +3,32 @@ import { BigIntPrimitive } from '../lib/bigint.js';
 import './App.css';
 
 function App() {
-  const [num1Str, setNum1Str] = useState("12345678901234567890");
-  const [num2Str, setNum2Str] = useState("98765432109876543210");
+  // States for Addition Test
+  const [addNum1Str, setAddNum1Str] = useState("12345678901234567890");
+  const [addNum2Str, setAddNum2Str] = useState("98765432109876543210");
   const [sumStr, setSumStr] = useState("");
-  const [error, setError] = useState("");
+  const [addErrorStr, setAddErrorStr] = useState("");
+
+  // States for Subtraction Test 1 (positive result)
+  const [sub1Num1Str, setSub1Num1Str] = useState("98765432109876543210");
+  const [sub1Num2Str, setSub1Num2Str] = useState("12345678901234567890");
+  const [sub1ResultStr, setSub1ResultStr] = useState("");
+  const [sub1ErrorStr, setSub1ErrorStr] = useState("");
+
+  // States for Subtraction Test 2 (negative result)
+  const [sub2Num1Str, setSub2Num1Str] = useState("100");
+  const [sub2Num2Str, setSub2Num2Str] = useState("10000");
+  const [sub2ResultStr, setSub2ResultStr] = useState("");
+  const [sub2ErrorStr, setSub2ErrorStr] = useState("");
 
   useEffect(() => {
     const canvas = document.getElementById('webglCanvas');
     if (!canvas) {
       const errMsg = "Canvas element with ID 'webglCanvas' not found. Make sure it's in index.html.";
       console.error(errMsg);
-      setError(errMsg);
+      setAddErrorStr(errMsg);
+      setSub1ErrorStr(errMsg);
+      setSub2ErrorStr(errMsg);
       // Attempt to update testOutput even on error
       const outputDiv = document.getElementById('testOutput');
       if (outputDiv) {
@@ -22,55 +37,98 @@ function App() {
       return;
     }
 
-    let n1, n2, res;
-    try {
-      n1 = new BigIntPrimitive(num1Str, canvas);
-      n2 = new BigIntPrimitive(num2Str, canvas);
-      console.log("BigIntPrimitive instances created:", n1, n2);
+    let outputText = "";
 
-      res = n1.add(n2);
+    // Addition Test
+    try {
+      const n1 = new BigIntPrimitive(addNum1Str, canvas);
+      const n2 = new BigIntPrimitive(addNum2Str, canvas);
+      const res = n1.add(n2);
       if (res) {
-        console.log("Addition result:", res.toString());
         setSumStr(res.toString());
+        outputText += `Addition: ${addNum1Str} + ${addNum2Str} = ${res.toString()}\n`;
       } else {
-        const errMsg = "BigInt addition returned null. Check console for details.";
-        console.error(errMsg);
-        setError(errMsg);
-        res = { toString: () => "Error: addition failed" }; // Placeholder for output
+        setAddErrorStr("BigInt addition returned null or error. Check console.");
+        outputText += `Addition: ${addNum1Str} + ${addNum2Str} = Error (null result)\n`;
       }
     } catch (e) {
-      const errMsg = `Error during BigInt operations: ${e.message}`;
-      console.error(errMsg, e);
-      setError(errMsg);
-      res = { toString: () => `Error: ${e.message}` }; // Placeholder for output
+      console.error("Error during BigInt addition:", e);
+      setAddErrorStr(`Error: ${e.message}`);
+      outputText += `Addition: ${addNum1Str} + ${addNum2Str} = Error (${e.message})\n`;
     }
 
-    // Update a specific div for easier scraping
+    // Subtraction Test 1 (positive result)
+    try {
+      const val1 = new BigIntPrimitive(sub1Num1Str, canvas);
+      const val2 = new BigIntPrimitive(sub1Num2Str, canvas);
+      const difference = val1.subtract(val2);
+      if (difference) {
+        setSub1ResultStr(difference.toString());
+        outputText += `Subtraction 1: ${sub1Num1Str} - ${sub1Num2Str} = ${difference.toString()}\n`;
+      } else {
+        setSub1ErrorStr("BigInt subtraction (1) returned null. Check console.");
+        outputText += `Subtraction 1: ${sub1Num1Str} - ${sub1Num2Str} = Error (null result)\n`;
+      }
+    } catch (e) {
+      console.error("Error during BigInt subtraction (1):", e);
+      setSub1ErrorStr(`Error: ${e.message}`);
+      outputText += `Subtraction 1: ${sub1Num1Str} - ${sub1Num2Str} = Error (${e.message})\n`;
+    }
+
+    // Subtraction Test 2 (negative result)
+    try {
+      const val3 = new BigIntPrimitive(sub2Num1Str, canvas);
+      const val4 = new BigIntPrimitive(sub2Num2Str, canvas);
+      const difference2 = val3.subtract(val4);
+      if (difference2) {
+        setSub2ResultStr(difference2.toString());
+        outputText += `Subtraction 2: ${sub2Num1Str} - ${sub2Num2Str} = ${difference2.toString()}\n`;
+      } else {
+        setSub2ErrorStr("BigInt subtraction (2) returned null. Check console.");
+        outputText += `Subtraction 2: ${sub2Num1Str} - ${sub2Num2Str} = Error (null result)\n`;
+      }
+    } catch (e) {
+      console.error("Error during BigInt subtraction (2):", e);
+      setSub2ErrorStr(`Error: ${e.message}`);
+      outputText += `Subtraction 2: ${sub2Num1Str} - ${sub2Num2Str} = Error (${e.message})\n`;
+    }
+
+    // Update a specific div for easier scraping (if needed by test automation)
     const outputDiv = document.getElementById('testOutput');
     if (outputDiv) {
-      outputDiv.innerText = `Num1: ${num1Str}\nNum2: ${num2Str}\nSum: ${sumStr || (res ? res.toString() : "Calculating...")}`;
-      if (error) {
-        outputDiv.innerText += `\nErrorState: ${error}`;
-      }
+      outputDiv.innerText = outputText;
+      if (addErrorStr) outputDiv.innerText += `Add Error: ${addErrorStr}\n`;
+      if (sub1ErrorStr) outputDiv.innerText += `Sub1 Error: ${sub1ErrorStr}\n`;
+      if (sub2ErrorStr) outputDiv.innerText += `Sub2 Error: ${sub2ErrorStr}\n`;
     }
 
-  }, [num1Str, num2Str, sumStr, error]); // Added sumStr and error to dependency array for completeness, though effect primarily runs once.
+  }, [addNum1Str, addNum2Str, sub1Num1Str, sub1Num2Str, sub2Num1Str, sub2Num2Str]); // Dependency array
 
   return (
     <div className="App">
-      <h1>BigInt Addition Test</h1>
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+      <h1>BigInt Operations Test</h1>
+
       <div>
-        <p>Number 1: {num1Str}</p>
-        <p>Number 2: {num2Str}</p>
-        <p>Sum: {sumStr}</p>
+        <h2>Addition Test</h2>
+        <p>{addNum1Str} + {addNum2Str} = {sumStr}</p>
+        {addErrorStr && <p style={{ color: 'red' }}>Error: {addErrorStr}</p>}
       </div>
-      <div id="testOutput">
-        {/* Content will be populated by useEffect */}
+
+      <div>
+        <h2>Subtraction Test 1 (Positive Result)</h2>
+        <p>{sub1Num1Str} - {sub1Num2Str} = {sub1ResultStr}</p>
+        {sub1ErrorStr && <p style={{ color: 'red' }}>Error: {sub1ErrorStr}</p>}
+      </div>
+
+      <div>
+        <h2>Subtraction Test 2 (Negative Result)</h2>
+        <p>{sub2Num1Str} - {sub2Num2Str} = {sub2ResultStr}</p>
+        {sub2ErrorStr && <p style={{ color: 'red' }}>Error: {sub2ErrorStr}</p>}
+      </div>
+
+      <div id="testOutput" style={{ whiteSpace: 'pre-wrap', marginTop: '20px', border: '1px solid #ccc', padding: '10px' }}>
         Initializing...
       </div>
-      {/* The canvas is used by WebGL but not necessarily displayed directly here unless wanted */}
-      {/* <canvas id="webglCanvas" style={{ display: 'none' }}></canvas> */}
     </div>
   );
 }
