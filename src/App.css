@@ -1,10 +1,91 @@
+/* Keep existing root and logo styles if they don't interfere */
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
-  text-align: center;
+  /* text-align: center; Let form elements align left */
 }
 
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Align children to the start */
+  gap: 1rem; /* Spacing between major sections */
+  max-width: 600px; /* Limit width for better readability */
+  margin: 0 auto; /* Center the App component */
+}
+
+.form-group {
+  display: flex;
+  flex-direction: row; /* Align label and input on the same line */
+  align-items: center;
+  gap: 0.5rem; /* Space between label and input */
+  width: 100%; /* Make form groups take full width */
+}
+
+.form-group label {
+  min-width: 100px; /* Give labels a minimum width for alignment */
+  text-align: right;
+}
+
+.form-group input[type="text"],
+.form-group select {
+  flex-grow: 1; /* Allow input elements to take remaining space */
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+.form-group input[type="checkbox"] {
+  margin-left: 0; /* Align checkbox with other inputs if label is on left */
+}
+
+
+.calculate-btn {
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: border-color 0.25s;
+  color: rgba(255, 255, 255, 0.87);
+  align-self: center; /* Center the button */
+  margin-top: 1rem;
+}
+.calculate-btn:hover {
+  border-color: #646cff;
+}
+.calculate-btn:focus,
+.calculate-btn:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+.result-area,
+.error-area {
+  width: 100%;
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  white-space: pre-wrap; /* Wrap long numbers/errors */
+  word-break: break-all; /* Break long strings if they overflow */
+  min-height: 3em; /* Give some initial height */
+}
+
+.error-area {
+  color: red;
+  border-color: red;
+}
+
+#webglCanvas {
+  display: none;
+}
+
+/* Original Vite styles - can be kept or removed as needed */
 .logo {
   height: 6em;
   padding: 1.5em;
