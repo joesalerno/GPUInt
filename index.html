@@ -56,8 +56,8 @@
           const operation = operationSelect.value;
 
           // Pass the canvas to the constructor
-          const bigInt1 = new BigIntPrimitive(val1, canvas);
-          const bigInt2 = new BigIntPrimitive(val2, canvas);
+          const bigInt1 = new BigIntPrimitive(val1, canvas, { forceCPU: true });
+          const bigInt2 = new BigIntPrimitive(val2, canvas, { forceCPU: true });
 
           let result;
           switch (operation) {
