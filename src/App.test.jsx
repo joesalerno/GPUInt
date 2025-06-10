@@ -107,6 +107,50 @@ describe('App Component', () => {
     }));
   });
 
+  it('performs simple multiplication (WebGL Path) and displays result', async () => {
+    MockedBigIntPrimitiveConstructor.multiply.mockReturnValue({ toString: () => "600" });
+    render(<App />);
+
+    const num1Input_mult = screen.getByLabelText(/Number 1:/i);
+    await userEvent.clear(num1Input_mult);
+    await userEvent.type(num1Input_mult, '20');
+
+    const num2Input_mult = screen.getByLabelText(/Number 2:/i);
+    await userEvent.clear(num2Input_mult);
+    await userEvent.type(num2Input_mult, '30');
+
+    await userEvent.selectOptions(screen.getByLabelText(/Operation:/i), 'multiply');
+    await waitFor(() => expect(screen.getByLabelText(/Operation:/i)).toHaveValue('multiply'));
+
+    // Ensure Force CPU is not checked for WebGL path
+    const forceCPUCheckbox = screen.getByLabelText(/Force CPU:/i);
+    if (forceCPUCheckbox.checked) {
+      await userEvent.click(forceCPUCheckbox);
+    }
+
+    await userEvent.click(screen.getByRole('button', { name: /Calculate/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("600")).toBeInTheDocument();
+    });
+
+    expect(MockedBigIntPrimitiveConstructor).toHaveBeenCalledTimes(2);
+    expect(MockedBigIntPrimitiveConstructor).toHaveBeenCalledWith(
+      '20',
+      expect.any(HTMLCanvasElement),
+      { forceCPU: false }
+    );
+    expect(MockedBigIntPrimitiveConstructor).toHaveBeenCalledWith(
+      '30',
+      expect.any(HTMLCanvasElement),
+      { forceCPU: false }
+    );
+    expect(MockedBigIntPrimitiveConstructor.multiply).toHaveBeenCalledTimes(1);
+    expect(MockedBigIntPrimitiveConstructor.multiply).toHaveBeenCalledWith(expect.objectContaining({
+      toString: expect.any(Function)
+    }));
+  });
+
   it('performs simple subtraction (CPU Path) and displays result', async () => {
     MockedBigIntPrimitiveConstructor.subtract.mockReturnValue({ toString: () => "40" });
     render(<App />);
