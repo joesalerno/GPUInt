@@ -7,7 +7,7 @@ uniform sampler2D u_carryTexture; // Texture containing incoming carries
 
 varying vec2 v_texCoord; // Texture coordinate, indicates which limb we're processing
 
-const float BASE = 10000.0;
+const float BASE = 10.0;
 
 void main() {
     // Read limbs from input textures
