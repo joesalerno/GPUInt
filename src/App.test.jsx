@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event'; // Import userEvent
 import '@testing-library/jest-dom/vitest';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'; // Added afterEach
 
 import App from './App'; // The component to test
 // When BigIntPrimitive is imported, it will be the mock due to vi.mock hoisting
@@ -13,7 +13,7 @@ vi.mock('../lib/bigint.js', () => {
 
   // Attach static method mocks directly TO THIS FUNCTION OBJECT.
   TheMockConstructor.add = vi.fn();
-  TheMockConstructor.subtract = vi.fn(); // Reverted to simple vi.fn()
+  TheMockConstructor.subtract = vi.fn();
   TheMockConstructor.multiply = vi.fn();
   TheMockConstructor.divideAndRemainder = vi.fn();
 
@@ -37,17 +37,24 @@ vi.mock('../lib/bigint.js', () => {
 });
 
 describe('App Component', () => {
+  let consoleErrorSpy;
+
   beforeEach(() => {
-    userEvent.setup(); // Setup userEvent
-    // MockedBigIntPrimitiveConstructor is TheMockConstructor from the factory.
+    userEvent.setup();
     MockedBigIntPrimitiveConstructor.mockClear();
 
-    // Reset static method mocks on the imported constructor.
     MockedBigIntPrimitiveConstructor.add.mockReset();
     MockedBigIntPrimitiveConstructor.subtract.mockReset();
     MockedBigIntPrimitiveConstructor.multiply.mockReset();
     MockedBigIntPrimitiveConstructor.divideAndRemainder.mockReset();
-    // No need to delete _configuredReturnValue as it's removed from the mock
+
+    // Spy on console.error before each test and provide a mock implementation
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    // Restore console.error after each test
+    consoleErrorSpy.mockRestore();
   });
 
   it('renders initial UI elements correctly', () => {
@@ -59,18 +66,11 @@ describe('App Component', () => {
     expect(screen.getByRole('button', { name: /Calculate/i })).toBeInTheDocument();
     expect(screen.getByText('Result:')).toBeInTheDocument(); // h3
     expect(document.getElementById('resultArea')).toBeInTheDocument();
-    // Error area is not visible initially, so we won't assert its presence directly
-    // It appears when `error` state is not empty.
     expect(document.getElementById('webglCanvas')).toBeInTheDocument();
   });
 
   it('performs simple addition (WebGL Path) and displays result', async () => {
-    // Mock specific method return values
-    // Now we configure the static mocks on MockedBigIntPrimitiveConstructor
     MockedBigIntPrimitiveConstructor.add.mockReturnValue({ toString: () => "30" });
-    // The instance.toString() mock in the constructor factory handles .toString() for inputs if they are stringified.
-    // The .toString() for the *result* of an operation (like add) is handled by what add.mockReturnValue returns.
-
     render(<App />);
 
     const num1Input_add = screen.getByLabelText(/Number 1:/i);
@@ -82,18 +82,14 @@ describe('App Component', () => {
     await userEvent.type(num2Input_add, '20');
 
     await userEvent.selectOptions(screen.getByLabelText(/Operation:/i), 'add');
-    // Ensure selectOptions has taken effect if React state update is involved
     await waitFor(() => expect(screen.getByLabelText(/Operation:/i)).toHaveValue('add'));
-    // 'Force CPU' is unchecked by default
 
     await userEvent.click(screen.getByRole('button', { name: /Calculate/i }));
 
-    // Wait for the result to appear
     await waitFor(() => {
       expect(screen.getByText("30")).toBeInTheDocument();
     });
 
-    // Check constructor calls
     expect(MockedBigIntPrimitiveConstructor).toHaveBeenCalledTimes(2);
     expect(MockedBigIntPrimitiveConstructor).toHaveBeenCalledWith(
       '10',
@@ -106,8 +102,6 @@ describe('App Component', () => {
       { forceCPU: false }
     );
     expect(MockedBigIntPrimitiveConstructor.add).toHaveBeenCalledTimes(1);
-     // Argument to add is the second BigInt instance.
-     // It's an object with its own toString, add, subtract etc. methods from the mock constructor.
     expect(MockedBigIntPrimitiveConstructor.add).toHaveBeenCalledWith(expect.objectContaining({
       toString: expect.any(Function)
     }));
@@ -115,8 +109,6 @@ describe('App Component', () => {
 
   it('performs simple subtraction (CPU Path) and displays result', async () => {
     MockedBigIntPrimitiveConstructor.subtract.mockReturnValue({ toString: () => "40" });
-    // Removed the debug mock for .add
-
     render(<App />);
 
     const num1Input_sub = screen.getByLabelText(/Number 1:/i);
@@ -128,17 +120,15 @@ describe('App Component', () => {
     await userEvent.type(num2Input_sub, '10');
 
     await userEvent.selectOptions(screen.getByLabelText(/Operation:/i), 'subtract');
-    // Ensure selectOptions has taken effect
     await waitFor(() => expect(screen.getByLabelText(/Operation:/i)).toHaveValue('subtract'));
 
-    await userEvent.click(screen.getByLabelText(/Force CPU:/i)); // Check the box
+    await userEvent.click(screen.getByLabelText(/Force CPU:/i));
     await userEvent.click(screen.getByRole('button', { name: /Calculate/i }));
 
     await waitFor(() => {
       expect(screen.getByTestId('result-area').textContent).toBe("40");
     });
 
-    // Restore assertions
     expect(MockedBigIntPrimitiveConstructor).toHaveBeenCalledTimes(2);
     expect(MockedBigIntPrimitiveConstructor).toHaveBeenCalledWith(
       '50',
@@ -157,36 +147,36 @@ describe('App Component', () => {
   });
 
   it('handles error for invalid input', async () => {
-    // Make constructor throw for invalid input
+    const expectedError = new Error("Invalid BigInt string format");
     MockedBigIntPrimitiveConstructor.mockImplementationOnce(() => {
-      throw new Error("Invalid BigInt string format");
+      throw expectedError;
     });
 
     render(<App />);
     const num1Input = screen.getByLabelText(/Number 1:/i);
-    await userEvent.clear(num1Input); // Clear default before typing "abc"
+    await userEvent.clear(num1Input);
     await userEvent.type(num1Input, 'abc');
-    // Num2 and operation can be default or set
+
     await userEvent.click(screen.getByRole('button', { name: /Calculate/i }));
 
     await waitFor(async () => {
       const errorDisplay = screen.queryByTestId('error-area');
       expect(errorDisplay).toBeInTheDocument();
       expect(errorDisplay).toHaveTextContent(/Invalid BigInt string format/i);
+      // Check if console.error was called with the specific error
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalledWith("Calculation error:", expect.objectContaining({ message: "Invalid BigInt string format" }));
     });
 
-    // Also ensure the result area is empty
     const resultArea_invalidInput = screen.getByTestId('result-area');
     expect(resultArea_invalidInput.textContent).toBe('');
-
-     // Constructor was called once and threw
     expect(MockedBigIntPrimitiveConstructor).toHaveBeenCalledTimes(1);
   });
 
   it('handles division by zero error', async () => {
-    // Mock divideAndRemainder to throw a specific error
+    const expectedError = new Error("Division by zero");
     MockedBigIntPrimitiveConstructor.divideAndRemainder.mockImplementation(() => {
-      throw new Error("Division by zero");
+      throw expectedError;
     });
 
     render(<App />);
@@ -199,7 +189,6 @@ describe('App Component', () => {
     await userEvent.type(num2Input_div, '0');
 
     await userEvent.selectOptions(screen.getByLabelText(/Operation:/i), 'divide');
-    // Ensure selectOptions has taken effect
     await waitFor(() => expect(screen.getByLabelText(/Operation:/i)).toHaveValue('divide'));
 
     await userEvent.click(screen.getByRole('button', { name: /Calculate/i }));
@@ -208,13 +197,15 @@ describe('App Component', () => {
       const errorDisplay = screen.queryByTestId('error-area');
       expect(errorDisplay).toBeInTheDocument();
       expect(errorDisplay).toHaveTextContent(/Division by zero/i);
+      // Check if console.error was called
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalledWith("Calculation error:", expect.objectContaining({ message: "Division by zero" }));
     });
 
-    // Also ensure the result area is empty
     const resultArea_divByZero = screen.getByTestId('result-area');
     expect(resultArea_divByZero.textContent).toBe('');
 
-    expect(MockedBigIntPrimitiveConstructor).toHaveBeenCalledTimes(2); // Both numbers instantiated
+    expect(MockedBigIntPrimitiveConstructor).toHaveBeenCalledTimes(2);
     expect(MockedBigIntPrimitiveConstructor.divideAndRemainder).toHaveBeenCalledTimes(1);
     expect(MockedBigIntPrimitiveConstructor.divideAndRemainder).toHaveBeenCalledWith(expect.objectContaining({
       toString: expect.any(Function)
