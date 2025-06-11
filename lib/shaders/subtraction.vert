@@ -1,8 +1,10 @@
 // lib/shaders/subtraction.vert
-attribute vec2 a_position; // Vertices for a quad that covers the output texture
-varying vec2 v_texCoord;   // Texture coordinate passed to fragment shader
+attribute vec2 a_position; // Vertex positions (e.g., a quad from -1 to 1)
+attribute vec2 a_texCoord; // Texture coordinates
+
+varying vec2 v_texCoord;
 
 void main() {
     gl_Position = vec4(a_position, 0.0, 1.0);
-    v_texCoord = (a_position + 1.0) / 2.0; // Map from [-1,1] to [0,1]
+    v_texCoord = a_texCoord; // Use a_texCoord directly
 }
