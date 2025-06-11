@@ -1,5 +1,5 @@
 // test/gpgpu.add.test.js
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'; // Added vi
 import { BigIntPrimitive } from '../lib/bigint.js';
 const { createMockCanvas, getHeadlessGLContext } = require('./webgl-test-utils.cjs'); // Use require for CJS module
 

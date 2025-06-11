@@ -1,0 +1,11 @@
+--- a/package.json
++++ b/package.json
+@@ -6,7 +6,7 @@
+     "build": "vite build",
+     "lint": "eslint .",
+     "preview": "vite preview",
+-    "test": "vitest --exclude test/gpgpu.add.test.js"
++    "test": "vitest"
+   },
+   "dependencies": {
+     "gl": "^8.1.6",
