@@ -12,7 +12,12 @@ const getHeadlessGLContext = (width, height, options) => {
         // We can attempt to get it and log.
         const oesTextureFloat = gl.getExtension('OES_texture_float');
         if (!oesTextureFloat) {
-            console.warn('headless-gl: OES_texture_float extension not available. Floating point textures might not work.');
+            console.warn('headless-gl WARNING: OES_texture_float extension not available. Floating point textures might not work.');
+        }
+
+        const webglColorBufferFloat = gl.getExtension('WEBGL_color_buffer_float');
+        if (!webglColorBufferFloat) {
+            console.warn('headless-gl WARNING: WEBGL_color_buffer_float extension not available. Rendering to float textures might not be fully supported or could be slow.');
         }
 
         // Add a mock getContext method to the gl instance if our library expects it

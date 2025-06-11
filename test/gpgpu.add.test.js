@@ -5,33 +5,48 @@ const { createMockCanvas, getHeadlessGLContext } = require('./webgl-test-utils.c
 
 // Skip these tests if running in an environment where headless-gl might not be set up
 // (e.g., some CIs without Xvfb/Mesa, or if 'gl' module fails to load)
-let gl;
-let mockCanvasInstance;
+let initialGL;
 let canRunGpgpuTests = true;
+let setupErrorMessage = '';
 
 try {
-    // Attempt to create a context to see if headless-gl is functional
-    // Use a small canvas for this initial check.
-    mockCanvasInstance = createMockCanvas(1, 1); // createMockCanvas will call getHeadlessGLContext
-    gl = mockCanvasInstance.getContext('webgl');
-    if (!gl) {
+    const testCanvas = createMockCanvas(1, 1);
+    initialGL = testCanvas.getContext('webgl');
+    if (!initialGL) {
         canRunGpgpuTests = false;
-        console.warn('Skipping GPGPU tests: Failed to get headless-gl context during setup.');
+        setupErrorMessage = 'Skipping GPGPU tests: Failed to get headless-gl context during setup.';
+        console.warn(setupErrorMessage);
     } else {
-        // Check for OES_texture_float, as our GPGPU relies on it
-        if (!gl.getExtension('OES_texture_float')) {
+        const hasOesTextureFloat = initialGL.getExtension('OES_texture_float');
+        const hasWebglColorBufferFloat = initialGL.getExtension('WEBGL_color_buffer_float');
+
+        if (!hasOesTextureFloat) {
             canRunGpgpuTests = false;
-            console.warn('Skipping GPGPU tests: OES_texture_float not supported by headless-gl context.');
+            setupErrorMessage = 'Skipping GPGPU tests: OES_texture_float not supported by headless-gl context.';
+            console.warn(setupErrorMessage);
         }
-        // Clean up the test context if it was created
-        if (typeof gl.destroy === 'function') { // headless-gl specific cleanup
-            gl.destroy();
+        // Check WEBGL_color_buffer_float, potentially appending to setupErrorMessage
+        if (!hasWebglColorBufferFloat) {
+            const message = 'WEBGL_color_buffer_float not supported by headless-gl context.';
+            if (!canRunGpgpuTests) { // If OES_texture_float also failed
+                setupErrorMessage = `${setupErrorMessage} And ${message}`;
+            } else {
+                setupErrorMessage = `Skipping GPGPU tests: ${message}`;
+            }
+            canRunGpgpuTests = false;
+            // console.warn was already done in getHeadlessGLContext, but good to have specific skip reason here
+            console.warn(setupErrorMessage); // Log the final combined or specific message
         }
-        gl = null; // Reset for per-test context
+
+        if (typeof initialGL.destroy === 'function') { // headless-gl specific cleanup
+            initialGL.destroy();
+        }
+        initialGL = null;
     }
 } catch (e) {
     canRunGpgpuTests = false;
-    console.warn(`Skipping GPGPU tests due to error during headless-gl context setup: ${e.message}`);
+    setupErrorMessage = `Skipping GPGPU tests due to error during headless-gl context setup: ${e.message}`;
+    console.warn(setupErrorMessage);
 }
 
 // Conditionally describe the suite
@@ -64,12 +79,20 @@ describeOrSkip('BigIntPrimitive GPGPU Operations via headless-gl', () => {
                 return;
             }
 
-            // Ensure OES_texture_float is available for this context as well
-            if (!testGL.getExtension('OES_texture_float')) {
-                 expect.fail('OES_texture_float not supported in this test context.');
-                 return;
+            // Ensure OES_texture_float and WEBGL_color_buffer_float are available for this context as well
+            const hasOESTF = testGL.getExtension('OES_texture_float');
+            const hasWCBF = testGL.getExtension('WEBGL_color_buffer_float');
+            if (!hasOESTF || !hasWCBF) {
+              let extErr = '';
+              if (!hasOESTF) extErr += 'OES_texture_float not supported. ';
+              if (!hasWCBF) extErr += 'WEBGL_color_buffer_float not supported. ';
+              expect.fail(extErr + 'Skipping this GPGPU test.');
+              // Clean up context for this test even if failing due to extensions
+              if (typeof testGL.destroy === 'function') { testGL.destroy(); }
+              return;
             }
 
+            delete BigIntPrimitive._shaderProgramsCache["additionProgram"];
             const num1 = new BigIntPrimitive(num1Str, testMockCanvas, { forceCPU: false });
             const num2 = new BigIntPrimitive(num2Str, testMockCanvas, { forceCPU: false });
 
