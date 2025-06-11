@@ -1,151 +1,123 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { BigIntPrimitive } from '../lib/bigint.js';
 import './App.css';
 
 function App() {
-  const [num1Str, setNum1Str] = useState('20000');
-  const [num2Str, setNum2Str] = useState('5333');
-  const [selectedOp, setSelectedOp] = useState('add');
-  const [resultStr, setResultStr] = useState('');
-  const [errorStr, setErrorStr] = useState('');
-  const [forceCPUEnabled, setForceCPUEnabled] = useState(false);
+  const [num1, setNum1] = useState("12345678901234567890");
+  const [num2, setNum2] = useState("98765432109876543210");
+  const [operation, setOperation] = useState("add"); // 'add', 'subtract', 'multiply', 'divide', 'remainder'
+  const [forceCPU, setForceCPU] = useState(false);
+  const [result, setResult] = useState("");
+  const [error, setError] = useState("");
+
+  const canvasRef = useRef(null);
 
   const handleCalculate = () => {
-    console.log("React App: handleCalculate triggered",
-                "num1Str:", num1Str,
-                "num2Str:", num2Str,
-                "selectedOp:", selectedOp,
-                "forceCPUEnabled:", forceCPUEnabled);
-    setResultStr('');
-    setErrorStr('');
-    const canvas = document.getElementById('webglCanvas');
+    setResult("");
+    setError("");
 
-    if (!canvas) {
-      setErrorStr('Error: Canvas element with ID "webglCanvas" not found in index.html.');
-      console.error('React App: Canvas element with ID "webglCanvas" not found.'); // Added console error
+    if (!canvasRef.current) {
+      setError("Error: Canvas element not found.");
       return;
     }
 
     try {
-      const options = { forceCPU: forceCPUEnabled };
-      console.log("React App: Instantiating BigInt1 with value:", num1Str, "forceCPU:", forceCPUEnabled);
-      const bigint1 = new BigIntPrimitive(num1Str, canvas, options);
-      console.log("React App: Instantiating BigInt2 with value:", num2Str, "forceCPU:", forceCPUEnabled);
-      const bigint2 = new BigIntPrimitive(num2Str, canvas, options);
+      const options = { forceCPU: forceCPU };
+      const bigInt1 = new BigIntPrimitive(num1, canvasRef.current, options);
+      const bigInt2 = new BigIntPrimitive(num2, canvasRef.current, options);
 
-      let calcResultString = '';
-      let calcResultObject = null;
-
-      switch (selectedOp) {
+      let calcResult;
+      switch (operation) {
         case 'add':
-          calcResultObject = bigint1.add(bigint2);
-          calcResultString = calcResultObject.toString();
+          calcResult = bigInt1.add(bigInt2);
           break;
         case 'subtract':
-          calcResultObject = bigint1.subtract(bigint2);
-          calcResultString = calcResultObject.toString();
+          calcResult = bigInt1.subtract(bigInt2);
           break;
         case 'multiply':
-          calcResultObject = bigint1.multiply(bigint2);
-          calcResultString = calcResultObject.toString();
+          calcResult = bigInt1.multiply(bigInt2);
           break;
-        case 'divide': {
-          const divResult = bigint1.divideAndRemainder(bigint2);
-          calcResultObject = { quotient: divResult.quotient, remainder: divResult.remainder }; // Store both for logging
-          calcResultString = `Quotient: ${divResult.quotient.toString()}\nRemainder: ${divResult.remainder.toString()}`;
+        case 'divide':
+          const divResult = bigInt1.divideAndRemainder(bigInt2);
+          calcResult = divResult.quotient;
           break;
-        }
-        case 'remainder': {
-          const remResult = bigint1.divideAndRemainder(bigint2);
-          calcResultObject = remResult.remainder;
-          calcResultString = calcResultObject.toString();
+        case 'remainder':
+          const remResult = bigInt1.divideAndRemainder(bigInt2);
+          calcResult = remResult.remainder;
           break;
-        }
         default:
-          throw new Error('Invalid operation selected');
+          throw new Error('Unknown operation selected');
       }
-      console.log("React App: Calculation result object (if applicable):",
-                  calcResultObject ? (calcResultObject.limbs ? JSON.parse(JSON.stringify(calcResultObject)) : calcResultObject) : "N/A"); // Avoid stringifying non-BigInt objects directly if they are compound like divResult
-      console.log("React App: Calculation result string:", calcResultString);
-      setResultStr(calcResultString);
+      setResult(calcResult.toString());
     } catch (e) {
-      console.error("React App: Error during calculation:", e, e.stack);
-      setErrorStr(e.message || String(e));
+      console.error("Calculation error:", e);
+      setResult(''); // Clear previous result when an error occurs
+      setError(`Error: ${e.message}${e.stack ? `\nStack: ${e.stack}` : ''}`);
     }
   };
 
   return (
-    <>
-      <div style={{ fontFamily: 'sans-serif', margin: '20px' }}>
-        <h2>BigIntPrimitive Interactive Tester (React)</h2>
+    <div className="App">
+      <h1>BigIntPrimitive Calculator</h1>
+      <canvas id="webglCanvas" ref={canvasRef} style={{ display: 'none' }}></canvas>
 
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="num1React" style={{ marginRight: '5px' }}>Number 1: </label>
-          <input
-            type="text"
-            id="num1React"
-            value={num1Str}
-            onChange={(e) => setNum1Str(e.target.value)}
-            style={{ padding: '5px' }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="num2React" style={{ marginRight: '5px' }}>Number 2: </label>
-          <input
-            type="text"
-            id="num2React"
-            value={num2Str}
-            onChange={(e) => setNum2Str(e.target.value)}
-            style={{ padding: '5px' }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="operationReact" style={{ marginRight: '5px' }}>Operation: </label>
-          <select
-            id="operationReact"
-            value={selectedOp}
-            onChange={(e) => setSelectedOp(e.target.value)}
-            style={{ padding: '5px' }}
-          >
-            <option value="add">Addition (+)</option>
-            <option value="subtract">Subtraction (-)</option>
-            <option value="multiply">Multiplication (*)</option>
-            <option value="divide">Division (Q & R)</option>
-            <option value="remainder">Remainder (%)</option>
-          </select>
-        </div>
-
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="forceCPUReact" style={{ marginRight: '5px' }}>Force CPU (for Add/Subtract): </label>
-          <input
-            type="checkbox"
-            id="forceCPUReact"
-            checked={forceCPUEnabled}
-            onChange={(e) => setForceCPUEnabled(e.target.checked)}
-          />
-        </div>
-
-        <button onClick={handleCalculate} style={{ padding: '8px 15px', marginTop: '10px' }}>
-          Calculate
-        </button>
-
-        <h3>Result:</h3>
-        <pre style={{ backgroundColor: '#f0f0f0', padding: '10px', minHeight: '30px', border: '1px solid #ccc', whiteSpace: 'pre-wrap' }}>
-          {resultStr}
-        </pre>
-
-        {errorStr && (
-          <>
-            <h3 style={{ color: 'red' }}>Error:</h3>
-            <pre style={{ color: 'red', backgroundColor: '#ffe0e0', padding: '10px', border: '1px solid red', whiteSpace: 'pre-wrap' }}>
-              {errorStr}
-            </pre>
-          </>
-        )}
+      <div className="form-group">
+        <label htmlFor="num1Input">Number 1:</label>
+        <input
+          type="text"
+          id="num1Input"
+          value={num1}
+          onChange={(e) => setNum1(e.target.value)}
+        />
       </div>
-    </>
+
+      <div className="form-group">
+        <label htmlFor="num2Input">Number 2:</label>
+        <input
+          type="text"
+          id="num2Input"
+          value={num2}
+          onChange={(e) => setNum2(e.target.value)}
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="operationSelect">Operation:</label>
+        <select
+          id="operationSelect"
+          value={operation}
+          onChange={(e) => setOperation(e.target.value)}
+        >
+          <option value="add">Addition (+)</option>
+          <option value="subtract">Subtraction (-)</option>
+          <option value="multiply">Multiplication (*)</option>
+          <option value="divide">Division (/)</option>
+          <option value="remainder">Remainder (%)</option>
+        </select>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="forceCPUCheckbox">Force CPU:</label>
+        <input
+          type="checkbox"
+          id="forceCPUCheckbox"
+          checked={forceCPU}
+          onChange={(e) => setForceCPU(e.target.checked)}
+        />
+      </div>
+
+      <button onClick={handleCalculate} className="calculate-btn">Calculate</button>
+
+      <h3>Result:</h3>
+      <pre id="resultArea" data-testid="result-area" className="result-area">{result}</pre>
+
+      {error && (
+        <>
+          <h3>Error:</h3>
+          <pre id="errorArea" data-testid="error-area" className="error-area">{error}</pre>
+        </>
+      )}
+    </div>
   );
 }
 
