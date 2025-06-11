@@ -1,0 +1,148 @@
+--- a/lib/bigint.js
++++ b/lib/bigint.js
+@@ -316,7 +316,9 @@
+       // This is a bit of a hack; ideally, there'd be a general purpose precise_divide method.
+       const precisionForDivision = Ctor.DP; // Use current global DP
+       const { internalDivide } = this.sqrt(); // Accessing it this way is not ideal, but for a quick patch.
+-                                            // This is actually bad, sqrt() returns a BigIntPrimitive.
++                                            // This was illustrative and incorrect.
++                                            // We will replace this with a call to _staticPreciseDivide.
++      // return Ctor._staticPreciseDivide(one, baseToPositivePower, Ctor.DP, Ctor.RM, Ctor, this.canvas, currentOptions);
+       // We need to define internalDivide locally or make it static/helper.
+       // For this patch, let's assume we can call a similar logic.
+       // Given the constraints, the best is to replicate a simplified internalDivide logic here.
+@@ -324,8 +326,7 @@
+       // This would require copying or refactoring internalDivide.
+       // A proper fix would be to make a utility for precise division.
+       // For now, this will be a placeholder for that division.
+-      // This will likely fail tests until internalDivide is properly callable or replicated.
+-      throw new Error("Precise division for 1/x^n not fully implemented in this patch yet.");
++      return Ctor._staticPreciseDivide(one, baseToPositivePower, Ctor.DP, Ctor.RM, Ctor, this.canvas, currentOptions);
+
+     } else { // Positive exponent
+       let res = new BigIntPrimitive("1", this.canvas, currentOptions);
+@@ -549,10 +550,9 @@
+     // internalDP needs to be high enough for Newton's method to converge properly.
+     const internalDP = originalDP + (String(Math.abs(S.exponent)).length || 1) + S.limbs.length + 7;
+
+-    // internalDivide: A specialized division for sqrt's S/x_n step.
+-    // It computes dividend / divisor to 'precision' decimal places.
+-    const internalDivide = (dividend, divisor, precision) => {
+-      if (divisor.isZero()) {
++    // _staticPreciseDivide is used here.
++    // Old internalDivide logic moved to BigIntPrimitive._staticPreciseDivide
++    /* const internalDivide_OLD = (dividend, divisor, precision) => {
+         throw new Error("[big.js] Division by zero in internalDivide for sqrt.");
+       }
+
+@@ -611,7 +611,7 @@
+         quotient.sign = -1;
+       }
+       return quotient;
+-    };
++    }; */
+
+     let x_n;
+     const s_order_mag_exp = S.exponent + S.limbs.length - 1;
+@@ -636,10 +636,12 @@
+         throw new Error("[big.js] Division by zero during sqrt iteration: x_n became zero.");
+       }
+
+-      const s_div_xn = internalDivide(S, x_n, internalDP);
++      // Use static method, pass internalDP for precision, and current Ctor.RM for rounding mode
++      const s_div_xn = Ctor._staticPreciseDivide(S, x_n, internalDP, Ctor.RM, Ctor, this.canvas, currentOptions);
+
+       const sum_terms = s_div_xn.add(x_n);
+-      x_n_plus_1 = internalDivide(sum_terms, two, internalDP); // Use precision division
++      // Use static method for this division too
++      x_n_plus_1 = Ctor._staticPreciseDivide(sum_terms, two, internalDP, Ctor.RM, Ctor, this.canvas, currentOptions);
+
+       const tempConvergenceDP = originalDP + 5;
+       const CtorDPForConvergenceCheck = Ctor.DP;
+@@ -931,6 +933,61 @@
+     // toString() will then use this _roundedDp to format the number to originalDP decimal places.
+     return finalResult;
+   }
++
++  static _staticPreciseDivide(dividend, divisor, dp, rm, Ctor, canvas, forceCPUoptions) {
++    // This logic is based on the former internalDivide from sqrt, generalized.
++    // `dp` is the target decimal places for the quotient.
++    // `rm` is the rounding mode to apply if necessary.
++    // `Ctor` is the constructor (BigIntPrimitive).
++    // `canvas` and `forceCPUoptions` are for new instance creation.
++
++    if (divisor.isZero()) {
++      throw new Error("[big.js] Division by zero in _staticPreciseDivide.");
++    }
++    if (dividend.isZero()) {
++      return new Ctor("0", canvas, forceCPUoptions);
++    }
++
++    const absDividend = dividend.abs();
++    const absDivisor = divisor.abs();
++
++    const toCoefficientAndExponent = (numInstance) => {
++      let coeffStr = numInstance.limbs.join('');
++      if (numInstance.isZero()) return { coeff: "0", exp: 0 };
++      return { coeff: coeffStr, exp: numInstance.exponent };
++    };
++
++    let dividendInfo = toCoefficientAndExponent(absDividend);
++    let numCoeffStr = dividendInfo.coeff;
++    // Scale dividend: its original exponent + target decimal places `dp`
++    let numEffectiveExp = dividendInfo.exp + dp;
++
++    let divisorInfo = toCoefficientAndExponent(absDivisor);
++    let denCoeffStr = divisorInfo.coeff;
++    let denEffectiveExp = divisorInfo.exp;
++
++    let finalNumStr, finalDenStr;
++    let expDiffForBigInt = numEffectiveExp - denEffectiveExp;
++
++    if (expDiffForBigInt >= 0) {
++      finalNumStr = numCoeffStr === "0" ? "0" : numCoeffStr + '0'.repeat(expDiffForBigInt);
++      finalDenStr = denCoeffStr;
++    } else {
++      finalNumStr = numCoeffStr;
++      finalDenStr = denCoeffStr === "0" ? "0" : denCoeffStr + '0'.repeat(-expDiffForBigInt);
++    }
++
++    if (finalNumStr === "") finalNumStr = "0";
++    if (finalDenStr === "" || finalDenStr === "0") {
++         throw new Error("[big.js] Division by zero in _staticPreciseDivide (denominator became zero string).");
++    }
++
++    const biNum = BigInt(finalNumStr);
++    const biDen = BigInt(finalDenStr);
++    const quotientValStr = (biNum / biDen).toString(); // Integer division result
++
++    // The quotientValStr is an integer. Its effective exponent is -dp.
++    let stringToReconstruct = quotientValStr === "0" ? "0" : `${quotientValStr}e${-dp}`;
++    let quotient = new Ctor(stringToReconstruct, canvas, forceCPUoptions);
++
++    // Round the result to `dp` decimal places using `rm`
++    // The Ctor.DP and Ctor.RM are global; for this operation, use specified dp, rm.
++    const originalGlobalDP = Ctor.DP;
++    const originalGlobalRM = Ctor.RM;
++    Ctor.DP = dp; // Set global DP for the round operation
++    Ctor.RM = rm; // Set global RM for the round operation
++
++    quotient = quotient.round(dp, rm); // round already uses Ctor.DP, Ctor.RM if args omitted, but explicit is clearer
++                                       // round(dp,rm) uses its args, not global Ctor.DP/RM directly for decision,
++                                       // but _staticRound uses Ctor.RM if its rm is undefined.
++                                       // So, setting Ctor.RM is important.
++
++    Ctor.DP = originalGlobalDP; // Restore global DP
++    Ctor.RM = originalGlobalRM; // Restore global RM
++
++    // Determine sign
++    if (dividend.sign !== divisor.sign && !quotient.isZero()) {
++      quotient.sign = -1;
++    } else if (quotient.isZero()) {
++      quotient.sign = 1;
++    }
++    return quotient;
++  }
+
+   prec(sd, rm) {
+     const Ctor = this.constructor;

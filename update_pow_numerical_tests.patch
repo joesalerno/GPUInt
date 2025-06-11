@@ -1,0 +1,54 @@
+--- a/lib/bigint.test.js
++++ b/lib/bigint.test.js
+@@ -1335,25 +1335,28 @@
+     BigIntPrimitive.DP = 5; // Ensure enough precision for 0.25
+     BigIntPrimitive.RM = 1; // roundHalfUp
+     const num = new BigIntPrimitive('2');
+-    // This test will fail until the division 1/x^n is properly implemented in pow()
+-    // expect(num.pow(-2).toString()).toBe('0.25000');
+-    // For now, expect it to throw the placeholder error
+-    expect(() => num.pow(-2)).toThrow("Precise division for 1/x^n not fully implemented in this patch yet.");
++    expect(num.pow(-2).toString()).toBe('0.25000');
+   });
+
+   it('10.pow(-1) should be 0.1', () => {
+     BigIntPrimitive.DP = 1;
+     BigIntPrimitive.RM = 1;
+     const num = new BigIntPrimitive('10');
+-    // expect(num.pow(-1).toString()).toBe('0.1');
+-    expect(() => num.pow(-1)).toThrow("Precise division for 1/x^n not fully implemented in this patch yet.");
++    expect(num.pow(-1).toString()).toBe('0.1');
+   });
+
+   it('3.pow(-2) should be 0.11111 (DP=5, RM=roundHalfUp)', () => {
+     BigIntPrimitive.DP = 5;
+     BigIntPrimitive.RM = 1; // roundHalfUp
+     const num = new BigIntPrimitive('3');
+-    // expect(num.pow(-2).toString()).toBe('0.11111');
+-    expect(() => num.pow(-2)).toThrow("Precise division for 1/x^n not fully implemented in this patch yet.");
++    expect(num.pow(-2).toString()).toBe('0.11111');
++  });
++
++  it('3.pow(-2) should be 0.1111 (DP=4, RM=roundDown)', () => {
++    BigIntPrimitive.DP = 4;
++    BigIntPrimitive.RM = 0; // roundDown
++    const num = new BigIntPrimitive('3');
++    expect(num.pow(-2).toString()).toBe('0.1111');
+   });
+
+   it('0.pow(-2) should throw an error', () => {
+@@ -1361,10 +1364,10 @@
+     expect(() => num.pow(-2)).toThrow("[big.js] Division by zero (0 raised to negative power)");
+   });
+
+-  it('should throw error for too large negative exponent', () => {
+-    const num = new BigIntPrimitive('2');
+-    expect(() => num.pow(-1000001)).toThrow("Exponent magnitude too large.");
+-  });
++  // This test for large negative exponent is already covered by `Input Validation` block for pow
++  // it('should throw error for too large negative exponent', () => {
++  //   const num = new BigIntPrimitive('2');
++  //   expect(() => num.pow(-1000001)).toThrow("Exponent magnitude too large.");
++  // });
+ });
+ EOF
