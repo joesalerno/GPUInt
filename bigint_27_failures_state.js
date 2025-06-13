@@ -533,53 +533,86 @@ class BigIntPrimitive {
   multiply(otherBigInt) {
     const self = this;
     if (!(otherBigInt instanceof BigIntPrimitive)) { throw new TypeError("Input must be an instance of BigIntPrimitive."); }
+
     if (self.isZero() || otherBigInt.isZero()) {
         return new BigIntPrimitive("0", self.canvas, { forceCPU: self.forceCPU || otherBigInt.forceCPU });
     }
+
     const finalExponent = self.exponent + otherBigInt.exponent;
     const resultSign = (self.sign === otherBigInt.sign) ? 1 : -1;
 
-    const tempNum1 = new BigIntPrimitive(self.limbs.join('') + '0'.repeat(self.exponent), self.canvas, {forceCPU: true});
-    const tempNum2 = new BigIntPrimitive(otherBigInt.limbs.join('') + '0'.repeat(otherBigInt.exponent), otherBigInt.canvas, {forceCPU: true});
+    // Work with absolute values for magnitude calculation
+    const selfAbs = self.abs();
+    const otherAbs = otherBigInt.abs();
 
-    let absResult;
-    let gl;
-    if (!self.forceCPU && !otherBigInt.forceCPU && self.canvas && typeof webglUtilsModule !== 'undefined' && (gl = webglUtilsModule.initWebGL(self.canvas))) {
-      absResult = self._core_multiply(tempNum1, tempNum2);
-    } else {
-       if (tempNum1.limbs.length < KARATSUBA_THRESHOLD || tempNum2.limbs.length < KARATSUBA_THRESHOLD) {
-           absResult = self._core_multiply(tempNum1, tempNum2);
+    // Create true coefficient representations for Karatsuba/core_multiply
+    const num1_for_mag_calc = new BigIntPrimitive(selfAbs.limbs.join(''), self.canvas, {forceCPU: self.forceCPU || otherBigInt.forceCPU, isCoefficient: true});
+    // num1_for_mag_calc.exponent = 0; // Constructor with isCoefficient should handle this
+
+    const num2_for_mag_calc = new BigIntPrimitive(otherAbs.limbs.join(''), self.canvas, {forceCPU: self.forceCPU || otherBigInt.forceCPU, isCoefficient: true});
+    // num2_for_mag_calc.exponent = 0; // Constructor with isCoefficient should handle this
+
+    let absResultMagnitude;
+    let gl; // For WebGL path, not currently implemented here but placeholder
+
+    // Decision for Karatsuba vs. schoolbook (using num_for_mag_calc)
+    if (! (self.forceCPU || otherBigInt.forceCPU) && false /* WebGL path disabled for now */ && self.canvas && typeof webglUtilsModule !== 'undefined' && (gl = webglUtilsModule.initWebGL(self.canvas))) {
+       absResultMagnitude = self._core_multiply(num1_for_mag_calc, num2_for_mag_calc);
+
+    } else { // CPU Path
+       if (num1_for_mag_calc.limbs.length < KARATSUBA_THRESHOLD || num2_for_mag_calc.limbs.length < KARATSUBA_THRESHOLD) {
+           absResultMagnitude = self._core_multiply(num1_for_mag_calc, num2_for_mag_calc);
        } else {
-           const n = Math.max(tempNum1.limbs.length, tempNum2.limbs.length);
-           const m = Math.floor(n / 2);
-           if (m === 0) { absResult = self._core_multiply(tempNum1, tempNum2);
+           const n = Math.max(num1_for_mag_calc.limbs.length, num2_for_mag_calc.limbs.length);
+           const m = (n <= 1) ? 0 : Math.floor(n / 2);
+
+           if (m === 0) {
+               absResultMagnitude = self._core_multiply(num1_for_mag_calc, num2_for_mag_calc);
            } else {
-               const { low: b, high: a } = tempNum1._splitAt(m);
-               const { low: d, high: c } = tempNum2._splitAt(m);
-               const p0 = a.multiply(c);
-               const p1 = b.multiply(d);
+               const { low: b, high: a } = num1_for_mag_calc._splitAt(m);
+               const { low: d, high: c } = num2_for_mag_calc._splitAt(m);
+
+               const p0_ac = a.multiply(c);
+               const p1_bd = b.multiply(d);
+
                const sum_ab = a.add(b);
                const sum_cd = c.add(d);
-               const p2_temp = sum_ab.multiply(sum_cd);
-               const p0_plus_p1 = p0.add(p1);
-               const p2 = p2_temp.subtract(p0_plus_p1);
-               const p0_shifted = p0._multiplyByPowerOfBase(2 * m);
-               const p2_shifted = p2._multiplyByPowerOfBase(m);
-               let tempSum = p0_shifted.add(p2_shifted);
-               absResult = tempSum.add(p1);
+               const p2_sumabcd = sum_ab.multiply(sum_cd);
+
+               const p0_plus_p1 = p0_ac.add(p1_bd);
+               const p2_middle_term = p2_sumabcd.subtract(p0_plus_p1);
+
+               const p0_ac_shifted = p0_ac._multiplyByPowerOfBase(2 * m);
+               const p2_middle_term_shifted = p2_middle_term._multiplyByPowerOfBase(m);
+
+               let tempSum = p0_ac_shifted.add(p2_middle_term_shifted);
+               absResultMagnitude = tempSum.add(p1_bd);
            }
        }
     }
-    absResult.exponent = finalExponent;
-    absResult.sign = resultSign;
-    if (absResult.isZero()) {
-        absResult.sign = 1; absResult.exponent = 0;
+
+    // Create the final result object
+    // The absResultMagnitude should have exponent 0 as it's a product of coefficients.
+    // The finalExponent carries the true exponent.
+    const finalResult = new BigIntPrimitive("0", self.canvas, {forceCPU: true});
+    finalResult.limbs = [...absResultMagnitude.limbs];
+    finalResult.exponent = absResultMagnitude.exponent + finalExponent; // Add original total exponent
+    finalResult.sign = resultSign;
+
+    if (finalResult.isZero()) {
+        finalResult.sign = 1;
+        finalResult.exponent = 0;
     } else {
-         while (absResult.limbs.length > 1 && absResult.limbs[absResult.limbs.length - 1] === 0) {
-            absResult.limbs.pop(); absResult.exponent++;
+        while (finalResult.limbs.length > 1 && finalResult.limbs[finalResult.limbs.length - 1] === 0) {
+            finalResult.limbs.pop();
+            finalResult.exponent++;
+        }
+        if (finalResult.limbs.length === 1 && finalResult.limbs[0] === 0) {
+             finalResult.exponent = 0;
+             finalResult.sign = 1;
         }
     }
-    return absResult;
+    return finalResult;
   }
 
   pow(exp) {
@@ -635,8 +668,8 @@ class BigIntPrimitive {
         highStr = s_coeffs.substring(0, s_coeffs.length - m);
         lowStr = s_coeffs.substring(s_coeffs.length - m);
     }
-    const high = new Ctor(highStr, this.canvas, currentOptions);
-    const low = new Ctor(lowStr, this.canvas, currentOptions);
+    const high = new Ctor(highStr, this.canvas, { ...currentOptions, isCoefficient: true }); // Changed
+    const low = new Ctor(lowStr, this.canvas, { ...currentOptions, isCoefficient: true });   // Changed
 
     high.exponent += (s_abs_exp + m);
     low.exponent += s_abs_exp;
@@ -683,15 +716,7 @@ class BigIntPrimitive {
   }
 
   _decimalDivide(positiveDividendArg, positiveDivisorArg, numDecimalPlaces) {
-    const isDebugTarget = positiveDividendArg.toString() === "10" && positiveDivisorArg.toString() === "4";
-    // Only log extensively if it's the specific 10/4 case we're interested in.
-    // The numDecimalPlaces for this case should be 6 if DP=1 in the test.
-
-    if (isDebugTarget) {
-      console.log(`DEBUG_10/4: _decimalDivide invoked. positiveDividendArg=${positiveDividendArg.toString()}, positiveDivisorArg=${positiveDivisorArg.toString()}, numDecimalPlaces=${numDecimalPlaces}`);
-    }
-
-    const dividend = new BigIntPrimitive(positiveDividendArg, this.canvas); // Re-instantiate to ensure clean state for this specific call
+    const dividend = new BigIntPrimitive(positiveDividendArg, this.canvas);
     const divisor = new BigIntPrimitive(positiveDivisorArg, this.canvas);
 
     if (divisor.isZero()) {
@@ -700,10 +725,9 @@ class BigIntPrimitive {
     if (dividend.isZero()) {
       return new BigIntPrimitive("0", this.canvas);
     }
-     if (dividend.isNegative() || divisor.isNegative()) { // Should not happen if abs() was called before
+    if (dividend.isNegative() || divisor.isNegative()) {
       throw new Error("_decimalDivide expects positive inputs after re-instantiation.");
     }
-
 
     let d_val_str = dividend.limbs.join('');
     let d_exp = dividend.exponent;
@@ -711,79 +735,51 @@ class BigIntPrimitive {
     let v_exp = divisor.exponent;
 
     let dividendStrForScaling = d_val_str;
+    // Ensure numDecimalPlaces is a non-negative integer for '0'.repeat()
     const actualNumDecimalPlaces = (typeof numDecimalPlaces === 'number' && numDecimalPlaces >= 0) ? numDecimalPlaces : 0;
     dividendStrForScaling += '0'.repeat(actualNumDecimalPlaces);
 
     const biDividend = BigInt(dividendStrForScaling);
     const biDivisor = BigInt(v_val_str);
 
-    if (isDebugTarget) {
-      console.log(`DEBUG_10/4: d_val_str=${d_val_str}, d_exp_original=${d_exp}`);
-      console.log(`DEBUG_10/4: v_val_str=${v_val_str}, v_exp_original=${v_exp}`);
-      console.log(`DEBUG_10/4: scaled_d_val_str=${dividendStrForScaling}, actualNumDecimalPlaces=${actualNumDecimalPlaces}`);
-      console.log(`DEBUG_10/4: biDividend=${biDividend.toString()}n, biDivisor=${biDivisor.toString()}n`);
-    }
+    const origDividendStrForLog = positiveDividendArg.toString();
+    const origDivisorStrForLog = positiveDivisorArg.toString();
+    console.log(`DEBUG: _decimalDivide for D_str=${origDividendStrForLog}, V_str=${origDivisorStrForLog}, numDP_arg=${numDecimalPlaces} (actual used for repeat: ${actualNumDecimalPlaces})`);
+    console.log(`DEBUG:   d_val_str=${d_val_str}, d_exp_original=${d_exp}`);
+    console.log(`DEBUG:   v_val_str=${v_val_str}, v_exp_original=${v_exp}`);
+    console.log(`DEBUG:   scaled_d_val_str=${dividendStrForScaling}`);
+    console.log(`DEBUG:   biDividend=${biDividend.toString()}, biDivisor=${biDivisor.toString()}`);
 
     if (biDivisor === 0n) {
         throw new Error("Division by zero after BigInt conversion for divisor.");
     }
     const biResult = biDividend / biDivisor;
     const q_int_str = biResult.toString();
+    console.log(`DEBUG:   q_int_str=${q_int_str}`);
 
-    if (isDebugTarget) {
-      console.log(`DEBUG_10/4: q_int_str=${q_int_str}`);
-    }
-
-    const tempResultNum = new BigIntPrimitive(q_int_str, this.canvas, { forceCPU: true });
-    if (isDebugTarget) {
-        console.log(`DEBUG_10/4: tempResultNum from q_int_str="${q_int_str}": limbs=${JSON.stringify(tempResultNum.limbs)}, exponent=${tempResultNum.exponent}, sign=${tempResultNum.sign}, isZero=${tempResultNum.isZero()}`);
-    }
-
-    // Check for the specific problematic case
-    if (isDebugTarget && q_int_str === "2500000" && tempResultNum.isZero() && numDecimalPlaces === 6) {
-      throw new Error(
-        `_decimalDivide Initial Check (10/4 specific): q_int_str was "${q_int_str}", but tempResultNum became zero. ` +
-        `tempResultNum state: limbs=${JSON.stringify(tempResultNum.limbs)}, exponent=${tempResultNum.exponent}, sign=${tempResultNum.sign}.`
-      );
-    }
-
-    const resultNum = tempResultNum;
+    const resultNum = new BigIntPrimitive(q_int_str, this.canvas, { forceCPU: true });
     const exponent_from_parsing_resultStr = resultNum.exponent;
     const final_exponent_for_resultNum = exponent_from_parsing_resultStr + d_exp - v_exp - actualNumDecimalPlaces;
     resultNum.exponent = final_exponent_for_resultNum;
 
-    if (isDebugTarget) {
-        console.log(`DEBUG_10/4: Calculated final_exponent_for_resultNum: ${final_exponent_for_resultNum}. resultNum state: limbs=${JSON.stringify(resultNum.limbs)}, exponent=${resultNum.exponent}, sign=${resultNum.sign}, isZero=${resultNum.isZero()}`);
-    }
-
-    if (isDebugTarget) {
-        console.log(`DEBUG_10/4: BEFORE isZero() check. limbs=${JSON.stringify(resultNum.limbs)}, exponent=${resultNum.exponent}, isZero=${resultNum.isZero()}`);
-    }
+    const tempParse = new BigIntPrimitive(q_int_str); // Re-parse to show its original state
+    console.log(`DEBUG:   resultNum after new BigIntPrimitive(q_int_str): limbs=${JSON.stringify(tempParse.limbs)}, exponent_from_parsing=${tempParse.exponent}`);
+    console.log(`DEBUG:   Calculated final exponent for resultNum: ${final_exponent_for_resultNum}`);
+    console.log(`DEBUG:   resultNum BEFORE RETURN: limbs=${JSON.stringify(resultNum.limbs)}, exponent=${resultNum.exponent}, sign=${resultNum.sign}`);
+    let temp_toString_val = "N/A";
+    try {
+      const oldPE_temp = BigIntPrimitive.PE; BigIntPrimitive.PE = 1e9;
+      const oldNE_temp = BigIntPrimitive.NE; BigIntPrimitive.NE = -1e9;
+      temp_toString_val = resultNum.toString();
+      BigIntPrimitive.PE = oldPE_temp; BigIntPrimitive.NE = oldNE_temp;
+    } catch (e) { temp_toString_val = "Error in toString: " + e.message; }
+    console.log(`DEBUG:   resultNum.toString() just before return: "${temp_toString_val}"`);
 
     if (resultNum.isZero()) {
-        if (isDebugTarget) console.log(`DEBUG_10/4: INSIDE isZero() true block. limbs=${JSON.stringify(resultNum.limbs)}. Setting exponent to 0.`);
         resultNum.exponent = 0;
-    } else {
-        if (isDebugTarget) console.log(`DEBUG_10/4: INSIDE isZero() false block. limbs=${JSON.stringify(resultNum.limbs)}.`);
     }
 
-    resultNum.sign = 1; // _decimalDivide is for absolute values
-
-    if (isDebugTarget && numDecimalPlaces === 6 && resultNum.isZero()) {
-      const initialTempResultNumState = new BigIntPrimitive(q_int_str, this.canvas, { forceCPU: true }); // Re-create for logging
-      throw new Error(
-        `_decimalDivide Final Check (10/4 specific): For 10/4 with internalPrecision=${numDecimalPlaces}, resultNum is zero before return. ` +
-        `q_int_str="${q_int_str}". ` +
-        `biDividend=${biDividend.toString()}n, biDivisor=${biDivisor.toString()}n, biResult=${biResult.toString()}n. ` +
-        `Initial tempResultNum (from q_int_str): limbs=${JSON.stringify(initialTempResultNumState.limbs)}, exponent=${initialTempResultNumState.exponent}, sign=${initialTempResultNumState.sign}. ` +
-        `Calculated final_exponent_for_resultNum: ${final_exponent_for_resultNum}. ` +
-        `resultNum state before this throw: limbs=${JSON.stringify(resultNum.limbs)}, exponent=${resultNum.exponent}, sign=${resultNum.sign}.`
-      );
-    }
-
-    if (isDebugTarget) {
-        console.log(`DEBUG_10/4: Returning from _decimalDivide. resultNum: limbs=${JSON.stringify(resultNum.limbs)}, exponent=${resultNum.exponent}, sign=${resultNum.sign}, toString()="${resultNum.toString()}"`);
-    }
+    resultNum.sign = 1;
     return resultNum;
   }
 
@@ -849,7 +845,7 @@ class BigIntPrimitive {
 
     let quotient = absDividend._decimalDivide(absDivisor, internalPrecision);
 
-    quotient = quotient.round(BigIntPrimitive.DP, BigIntPrimitive.RM);
+    // quotient = quotient.round(BigIntPrimitive.DP, BigIntPrimitive.RM); // COMMENTED OUT FOR DEBUGGING
 
     if (quotient.isZero()) {
       quotient.sign = 1;

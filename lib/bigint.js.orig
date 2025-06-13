@@ -58,6 +58,8 @@ class BigIntPrimitive {
       stringValue = String(value);
     } else if (typeof value === 'string') {
       stringValue = value.trim();
+console.log("[Constructor String Log] Input value: " + value);
+console.log("[Constructor String Log] stringValue after trim: " + stringValue);
     } else {
       throw new TypeError("Invalid input type for BigIntPrimitive. Expected string, number, or BigIntPrimitive instance.");
     }
@@ -157,6 +159,7 @@ class BigIntPrimitive {
       this.exponent++;
     }
 
+console.log("[Constructor String Log] After normalization - Limbs: " + JSON.stringify(this.limbs) + ", Exponent: " + this.exponent + ", Sign: " + this.sign);
     if (this.limbs.length === 1 && this.limbs[0] === 0) {
       this.exponent = 0;
       this.sign = 1;
@@ -359,7 +362,7 @@ class BigIntPrimitive {
       const resultNumCPU = new BigIntPrimitive("0", this.canvas, { forceCPU: true });
       resultNumCPU.limbs = finalResultLimbs;
       resultNumCPU.sign = 1;
-      if (resultNumCPU.isZero()) { resultNumCPU.exponent = 0; }
+      if (resultNumCPU.isZero()) { resultNumCPU.exponent = 0; resultNumCPU.sign = 1; }
       return resultNumCPU;
   }
 
@@ -682,17 +685,10 @@ class BigIntPrimitive {
     return { quotient: new BigIntPrimitive(q.toString(), this.canvas), remainder: new BigIntPrimitive(r.toString(), this.canvas) };
   }
 
-  _decimalDivide(positiveDividendArg, positiveDivisorArg, numDecimalPlaces) {
-    const isDebugTarget = positiveDividendArg.toString() === "10" && positiveDivisorArg.toString() === "4";
-    // Only log extensively if it's the specific 10/4 case we're interested in.
-    // The numDecimalPlaces for this case should be 6 if DP=1 in the test.
-
-    if (isDebugTarget) {
-      console.log(`DEBUG_10/4: _decimalDivide invoked. positiveDividendArg=${positiveDividendArg.toString()}, positiveDivisorArg=${positiveDivisorArg.toString()}, numDecimalPlaces=${numDecimalPlaces}`);
-    }
-
-    const dividend = new BigIntPrimitive(positiveDividendArg, this.canvas); // Re-instantiate to ensure clean state for this specific call
-    const divisor = new BigIntPrimitive(positiveDivisorArg, this.canvas);
+  _decimalDivide(divisorParam, numDecimalPlacesParam) {
+console.log('Enter _decimalDivide: THIS (dividend)=' + this.toString() + ', divisorParam=' + divisorParam.toString() + ', numDecimalPlacesParam=' + numDecimalPlacesParam);
+    const dividend = new BigIntPrimitive(this, this.canvas);
+    const divisor = new BigIntPrimitive(divisorParam, this.canvas);
 
     if (divisor.isZero()) {
       throw new Error("Division by zero in _decimalDivide.");
@@ -700,10 +696,9 @@ class BigIntPrimitive {
     if (dividend.isZero()) {
       return new BigIntPrimitive("0", this.canvas);
     }
-     if (dividend.isNegative() || divisor.isNegative()) { // Should not happen if abs() was called before
+    if (dividend.isNegative() || divisor.isNegative()) {
       throw new Error("_decimalDivide expects positive inputs after re-instantiation.");
     }
-
 
     let d_val_str = dividend.limbs.join('');
     let d_exp = dividend.exponent;
@@ -711,79 +706,51 @@ class BigIntPrimitive {
     let v_exp = divisor.exponent;
 
     let dividendStrForScaling = d_val_str;
-    const actualNumDecimalPlaces = (typeof numDecimalPlaces === 'number' && numDecimalPlaces >= 0) ? numDecimalPlaces : 0;
+    // Ensure numDecimalPlaces is a non-negative integer for '0'.repeat()
+    const actualNumDecimalPlaces = (typeof numDecimalPlacesParam === 'number' && numDecimalPlacesParam >= 0) ? numDecimalPlacesParam : 0;
     dividendStrForScaling += '0'.repeat(actualNumDecimalPlaces);
 
     const biDividend = BigInt(dividendStrForScaling);
     const biDivisor = BigInt(v_val_str);
 
-    if (isDebugTarget) {
-      console.log(`DEBUG_10/4: d_val_str=${d_val_str}, d_exp_original=${d_exp}`);
-      console.log(`DEBUG_10/4: v_val_str=${v_val_str}, v_exp_original=${v_exp}`);
-      console.log(`DEBUG_10/4: scaled_d_val_str=${dividendStrForScaling}, actualNumDecimalPlaces=${actualNumDecimalPlaces}`);
-      console.log(`DEBUG_10/4: biDividend=${biDividend.toString()}n, biDivisor=${biDivisor.toString()}n`);
-    }
+    const origDividendStrForLog = dividend.toString();
+    const origDivisorStrForLog = divisor.toString();
+    console.log(`DEBUG: _decimalDivide for D_str=${origDividendStrForLog}, V_str=${origDivisorStrForLog}, numDP_arg=${numDecimalPlacesParam} (actual used for repeat: ${actualNumDecimalPlaces})`);
+    console.log(`DEBUG:   d_val_str=${d_val_str}, d_exp_original=${d_exp}`);
+    console.log(`DEBUG:   v_val_str=${v_val_str}, v_exp_original=${v_exp}`);
+    console.log(`DEBUG:   scaled_d_val_str=${dividendStrForScaling}`);
+    console.log(`DEBUG:   biDividend=${biDividend.toString()}, biDivisor=${biDivisor.toString()}`);
 
     if (biDivisor === 0n) {
         throw new Error("Division by zero after BigInt conversion for divisor.");
     }
     const biResult = biDividend / biDivisor;
     const q_int_str = biResult.toString();
+    console.log(`DEBUG:   q_int_str=${q_int_str}`);
 
-    if (isDebugTarget) {
-      console.log(`DEBUG_10/4: q_int_str=${q_int_str}`);
-    }
-
-    const tempResultNum = new BigIntPrimitive(q_int_str, this.canvas, { forceCPU: true });
-    if (isDebugTarget) {
-        console.log(`DEBUG_10/4: tempResultNum from q_int_str="${q_int_str}": limbs=${JSON.stringify(tempResultNum.limbs)}, exponent=${tempResultNum.exponent}, sign=${tempResultNum.sign}, isZero=${tempResultNum.isZero()}`);
-    }
-
-    // Check for the specific problematic case
-    if (isDebugTarget && q_int_str === "2500000" && tempResultNum.isZero() && numDecimalPlaces === 6) {
-      throw new Error(
-        `_decimalDivide Initial Check (10/4 specific): q_int_str was "${q_int_str}", but tempResultNum became zero. ` +
-        `tempResultNum state: limbs=${JSON.stringify(tempResultNum.limbs)}, exponent=${tempResultNum.exponent}, sign=${tempResultNum.sign}.`
-      );
-    }
-
-    const resultNum = tempResultNum;
+    const resultNum = new BigIntPrimitive(q_int_str, this.canvas, { forceCPU: true });
     const exponent_from_parsing_resultStr = resultNum.exponent;
     const final_exponent_for_resultNum = exponent_from_parsing_resultStr + d_exp - v_exp - actualNumDecimalPlaces;
     resultNum.exponent = final_exponent_for_resultNum;
 
-    if (isDebugTarget) {
-        console.log(`DEBUG_10/4: Calculated final_exponent_for_resultNum: ${final_exponent_for_resultNum}. resultNum state: limbs=${JSON.stringify(resultNum.limbs)}, exponent=${resultNum.exponent}, sign=${resultNum.sign}, isZero=${resultNum.isZero()}`);
-    }
-
-    if (isDebugTarget) {
-        console.log(`DEBUG_10/4: BEFORE isZero() check. limbs=${JSON.stringify(resultNum.limbs)}, exponent=${resultNum.exponent}, isZero=${resultNum.isZero()}`);
-    }
+    const tempParse = new BigIntPrimitive(q_int_str); // Re-parse to show its original state
+    console.log(`DEBUG:   resultNum after new BigIntPrimitive(q_int_str): limbs=${JSON.stringify(tempParse.limbs)}, exponent_from_parsing=${tempParse.exponent}`);
+    console.log(`DEBUG:   Calculated final exponent for resultNum: ${final_exponent_for_resultNum}`);
+    console.log(`DEBUG:   resultNum BEFORE RETURN: limbs=${JSON.stringify(resultNum.limbs)}, exponent=${resultNum.exponent}, sign=${resultNum.sign}`);
+    let temp_toString_val = "N/A";
+    try {
+      const oldPE_temp = BigIntPrimitive.PE; BigIntPrimitive.PE = 1e9;
+      const oldNE_temp = BigIntPrimitive.NE; BigIntPrimitive.NE = -1e9;
+      temp_toString_val = resultNum.toString();
+      BigIntPrimitive.PE = oldPE_temp; BigIntPrimitive.NE = oldNE_temp;
+    } catch (e) { temp_toString_val = "Error in toString: " + e.message; }
+    console.log(`DEBUG:   resultNum.toString() just before return: "${temp_toString_val}"`);
 
     if (resultNum.isZero()) {
-        if (isDebugTarget) console.log(`DEBUG_10/4: INSIDE isZero() true block. limbs=${JSON.stringify(resultNum.limbs)}. Setting exponent to 0.`);
         resultNum.exponent = 0;
-    } else {
-        if (isDebugTarget) console.log(`DEBUG_10/4: INSIDE isZero() false block. limbs=${JSON.stringify(resultNum.limbs)}.`);
     }
 
-    resultNum.sign = 1; // _decimalDivide is for absolute values
-
-    if (isDebugTarget && numDecimalPlaces === 6 && resultNum.isZero()) {
-      const initialTempResultNumState = new BigIntPrimitive(q_int_str, this.canvas, { forceCPU: true }); // Re-create for logging
-      throw new Error(
-        `_decimalDivide Final Check (10/4 specific): For 10/4 with internalPrecision=${numDecimalPlaces}, resultNum is zero before return. ` +
-        `q_int_str="${q_int_str}". ` +
-        `biDividend=${biDividend.toString()}n, biDivisor=${biDivisor.toString()}n, biResult=${biResult.toString()}n. ` +
-        `Initial tempResultNum (from q_int_str): limbs=${JSON.stringify(initialTempResultNumState.limbs)}, exponent=${initialTempResultNumState.exponent}, sign=${initialTempResultNumState.sign}. ` +
-        `Calculated final_exponent_for_resultNum: ${final_exponent_for_resultNum}. ` +
-        `resultNum state before this throw: limbs=${JSON.stringify(resultNum.limbs)}, exponent=${resultNum.exponent}, sign=${resultNum.sign}.`
-      );
-    }
-
-    if (isDebugTarget) {
-        console.log(`DEBUG_10/4: Returning from _decimalDivide. resultNum: limbs=${JSON.stringify(resultNum.limbs)}, exponent=${resultNum.exponent}, sign=${resultNum.sign}, toString()="${resultNum.toString()}"`);
-    }
+    resultNum.sign = 1;
     return resultNum;
   }
 
@@ -849,7 +816,7 @@ class BigIntPrimitive {
 
     let quotient = absDividend._decimalDivide(absDivisor, internalPrecision);
 
-    quotient = quotient.round(BigIntPrimitive.DP, BigIntPrimitive.RM);
+    // quotient = quotient.round(BigIntPrimitive.DP, BigIntPrimitive.RM); // COMMENTED OUT FOR DEBUGGING
 
     if (quotient.isZero()) {
       quotient.sign = 1;
@@ -968,9 +935,6 @@ class BigIntPrimitive {
             integerS = integerS.substring(0, roundPosInInt);
             if(integerS === "" || integerS ==="-") integerS = effectiveSign === -1 && parseFloat(s) !==0 ? "-0" : "0";
         }
-    }
-
-    if (applyRoundingEffect && effectiveSign === -1) {
     }
 
 
@@ -1133,7 +1097,7 @@ class BigIntPrimitive {
         let [intPart, fracPart=""] = coeffStrFinal.split('.');
         fracPart = fracPart.padEnd(dp, '0').substring(0,dp);
         if (dp === 0) coeffStrFinal = intPart;
-        else finalCoeffStr = intPart + "." + fracPart;
+        else coeffStrFinal = intPart + "." + fracPart;
     } else {
         if (coeffStrFinal.includes('.')) coeffStrFinal = coeffStrFinal.replace(/\.0+$/, '').replace(/(\.[0-9]*[1-9])0+$/, '$1');
     }

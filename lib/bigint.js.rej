@@ -1,0 +1,30 @@
+--- lib/bigint.js
++++ lib/bigint.js
+@@ -88,15 +89,21 @@
+     }
+
+     this.limbs = coefficientStr.split('').map(digit => parseInt(digit, 10));
++    if (isCoefficient && decimalPointIndex === -1) { // If it's a coefficient and was an integer string
++        this.exponent = 0;
++    }
+
+     let leadingZerosToRemove = 0;
+     while (leadingZerosToRemove < this.limbs.length -1 && this.limbs[leadingZerosToRemove] === 0) {
+         leadingZerosToRemove++;
+     }
+     if (leadingZerosToRemove > 0) {
+-        this.limbs.splice(0, leadingZerosToRemove);
+-    }
+-
+-    while (this.limbs.length > 1 && this.limbs[this.limbs.length - 1] === 0) {
+-      this.limbs.pop();
+-      this.exponent++;
++        this.limbs.splice(0, leadingZerosToRemove); // Always remove leading zeros from limbs
++    }
++
++    // For non-coefficients, or coefficients that might have had a decimal (e.g. "1.230" passed as coeff)
++    // normalize trailing zeros from the fractional part.
++    if (!isCoefficient || (isCoefficient && decimalPointIndex !== -1)) {
++        while (this.limbs.length > 1 && this.limbs[this.limbs.length - 1] === 0) {
++            this.limbs.pop();
++            this.exponent++;

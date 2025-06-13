@@ -1,0 +1,713 @@
+
+--- Test Suite FAILED: /app/lib/bigint.test.js ---
+  Test: should use _core_multiply for numbers smaller than KARATSUBA_THRESHOLD
+    Status: failed
+    Error Message 1: AssertionError: expected "_core_multiply" to be called 9 times, but got 1 times
+            at /app/lib/bigint.test.js:1163:33
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: should use Karatsuba for large numbers (calls _splitAt and _core_multiply at base)
+    Status: failed
+    Error Message 1: AssertionError: expected "_splitAt" to be called at least once
+            at Proxy.<anonymous> (file:///app/node_modules/@vitest/expect/dist/index.js:1326:10)
+            at Proxy.<anonymous> (file:///app/node_modules/@vitest/expect/dist/index.js:1022:14)
+            at Proxy.methodWrapper (file:///app/node_modules/chai/chai.js:1618:25)
+            at /app/lib/bigint.test.js:1196:28
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+    ---
+  Test: Karatsuba integration: large numbers with forceCPU
+    Status: failed
+    Error Message 1: RangeError: Invalid count value
+            at String.repeat (<anonymous>)
+            at BigIntPrimitive.multiply (/app/lib/bigint.js:542:68)
+            at BigIntPrimitive.mockCall (file:///app/node_modules/@vitest/spy/dist/index.js:89:15)
+            at BigIntPrimitive.multiply (file:///app/node_modules/tinyspy/dist/index.js:47:103)
+            at BigIntPrimitive.multiply (/app/lib/bigint.js:559:29)
+            at BigIntPrimitive.mockCall (file:///app/node_modules/@vitest/spy/dist/index.js:89:15)
+            at BigIntPrimitive.multiply (file:///app/node_modules/tinyspy/dist/index.js:47:103)
+            at /app/lib/bigint.test.js:1252:33
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+    ---
+  Test: sqrt(1) should be 1
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '1' // Object.is equality
+            at /app/lib/bigint.test.js:1672:35
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: sqrt(4) should be 2
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '2' // Object.is equality
+            at /app/lib/bigint.test.js:1678:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: sqrt(9) should be 3
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '3' // Object.is equality
+            at /app/lib/bigint.test.js:1684:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: sqrt(16) should be 4
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '4' // Object.is equality
+            at /app/lib/bigint.test.js:1690:39
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: sqrt(2) with DP=20 should be 1.41421356237309504880
+    Status: failed
+    Error Message 1: AssertionError: expected '0.00000000000000000000' to be '1.41421356237309504880' // Object.is equality
+            at /app/lib/bigint.test.js:1697:35
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: sqrt(3) with DP=20 should be 1.7320508075688772935
+    Status: failed
+    Error Message 1: AssertionError: expected '0.00000000000000000000' to be '1.7320508075688772935' // Object.is equality
+            at /app/lib/bigint.test.js:1704:37
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: sqrt(12345) with DP=20 should be 111.108055513539740030
+    Status: failed
+    Error Message 1: AssertionError: expected '0.00000000000000000000' to be '111.10805551353974002952' // Object.is equality
+            at /app/lib/bigint.test.js:1711:35
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: sqrt(0.0004) with DP=4 should be 0.02
+    Status: failed
+    Error Message 1: AssertionError: expected '0.0000' to be '0.0200' // Object.is equality
+            at /app/lib/bigint.test.js:1718:35
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: sqrt(very small number) sqrt(0.00000000000000000001) DP 20
+    Status: failed
+    Error Message 1: AssertionError: expected '0.00000000000000000000' to be '0.00000000010000000000' // Object.is equality
+            at /app/lib/bigint.test.js:1725:35
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: DEBUG TEST: 10 / 4 (DP=1) _decimalDivide raw output
+    Status: failed
+    Error Message 1: Error: DEBUG TEST FAILED for 10/4 (DP=1, internalPrecision=7)
+          _decimalDivide returned: toString()="0"
+            Expected state for 2.5: limbs=[2,5], exponent=-1
+            Actual state:   limbs=[0], exponent=0
+            (Sign was 1)
+            at /app/lib/bigint.test.js:1769:13
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 10 / 4 (DP=1, RM=halfUp) should be 2.5
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '2.5' // Object.is equality
+            at /app/lib/bigint.test.js:1787:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 1 / 2 (DP=1, RM=halfUp) should be 0.5
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '0.5' // Object.is equality
+            at /app/lib/bigint.test.js:1795:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 7 / 2 (DP=1, RM=halfUp) should be 3.5
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '3.5' // Object.is equality
+            at /app/lib/bigint.test.js:1803:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 10 / 3 (DP=2, RM=halfUp) should be 3.33
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '3.33' // Object.is equality
+            at /app/lib/bigint.test.js:1811:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 10 / 3 (DP=5, RM=halfUp) should be 3.33333
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '3.33333' // Object.is equality
+            at /app/lib/bigint.test.js:1819:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 1 / 8 (DP=3, RM=halfUp) should be 0.125
+    Status: failed
+    Error Message 1: AssertionError: expected '1' to be '0.125' // Object.is equality
+            at /app/lib/bigint.test.js:1827:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 10 / 0.5 (DP=0, RM=halfUp) should be 20
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '20' // Object.is equality
+            at /app/lib/bigint.test.js:1835:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 10.5 / 3 (DP=1, RM=halfUp) should be 3.5
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '3.5' // Object.is equality
+            at /app/lib/bigint.test.js:1843:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 0.25 / 0.5 (DP=1, RM=halfUp) should be 0.5
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '0.5' // Object.is equality
+            at /app/lib/bigint.test.js:1851:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: Sign handling: (-10) / 4 (DP=1) should be -2.5
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '-2.5' // Object.is equality
+            at /app/lib/bigint.test.js:1859:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: Sign handling: 10 / (-4) (DP=1) should be -2.5
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '-2.5' // Object.is equality
+            at /app/lib/bigint.test.js:1867:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: Sign handling: (-10) / (-4) (DP=1) should be 2.5
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '2.5' // Object.is equality
+            at /app/lib/bigint.test.js:1875:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: Division by 1: 123.45 / 1 (DP=2) should be 123.45
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '123.45' // Object.is equality
+            at /app/lib/bigint.test.js:1883:36
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 10 / 3 => Q=3, R=1
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '3' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2138:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 12 / 4 => Q=3, R=0
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '3' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2138:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 12345 / 1 => Q=12345, R=0
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '12345' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2138:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 10000 / 1 => Q=10000, R=0
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '10000' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2138:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 20000000000000000000 / 5333 => Q=3750234389649353, R=451
+    Status: failed
+    Error Message 1: AssertionError: expected '121' to be '3750234389649353' // Object.is equality
+            at /app/lib/bigint.test.js:2165:37
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 123456 / 123 => Q=1003, R=87
+    Status: failed
+    Error Message 1: AssertionError: expected '4' to be '1003' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2184:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 1000000 / 101 => Q=9900, R=100
+    Status: failed
+    Error Message 1: AssertionError: expected '3' to be '9900' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2184:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 10 / 2 => Q=5, R=0
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '5' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2184:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 20 / 10 => Q=2, R=0
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '2' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2184:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 100 / 10 => Q=10, R=0
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '10' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2184:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 12345678901234567890 / 987654321 => Q=12499999887, R=339506163
+    Status: failed
+    Error Message 1: AssertionError: expected '37986704' to be '12499999887' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2184:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 123 / 12345 => Q=0, R=123
+    Status: failed
+    Error Message 1: AssertionError: expected '493' to be '0' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2184:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 500000010 / 10000 => Q=50000, R=10
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '50000' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2184:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 99999 / 100 => Q=999, R=99
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '999' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2184:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 60 / 10 => Q=6, R=0
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '6' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2184:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 10 / 3 => Q=3, R=1
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '3' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2210:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: -10 / 3 => Q=-3, R=-1
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '-3' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2210:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 10 / -3 => Q=-3, R=1
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '-3' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2210:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: -10 / -3 => Q=3, R=-1
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '3' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2210:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 12 / 4 => Q=3, R=0
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '3' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2210:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: -12 / 4 => Q=-3, R=0
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '-3' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2210:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: 12 / -4 => Q=-3, R=0
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '-3' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2210:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: -12 / -4 => Q=3, R=0
+    Status: failed
+    Error Message 1: AssertionError: expected '0' to be '3' // Object.is equality
+            at checkDivRem (/app/lib/bigint.test.js:2063:33)
+            at /app/lib/bigint.test.js:2210:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+  Test: DEBUG TEST: should correctly represent 2.5 from _decimalDivide for 10/4
+    Status: failed
+    Error Message 1: Error: DEBUG TEST FAILED for 10/4 (DP=1, internalPrecision=7)
+          _decimalDivide returned: toString()="0"
+            Expected state for 2.5: limbs=[2,5], exponent=-1
+            Actual state:   limbs=[0], exponent=0
+            (Sign was 1)
+            at /app/lib/bigint.test.js:2501:13
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+            at file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1894:20
+            at new Promise (<anonymous>)
+            at runWithTimeout (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1860:10)
+            at runTest (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1571:12)
+            at processTicksAndRejections (node:internal/process/task_queues:95:5)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+            at runSuite (file:///app/node_modules/@vitest/runner/dist/chunk-hooks.js:1726:8)
+    ---
+
+Total failed tests reported by Vitest: 50
+Total failed assertions parsed from details: 50

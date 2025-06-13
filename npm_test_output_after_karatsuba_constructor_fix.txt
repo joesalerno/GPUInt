@@ -1,0 +1,5 @@
+
+> gpu-bigint@0.0.0 test
+> vitest --reporter json --outputFile test-results-karatsuba-constructor-fix.json
+
+JSON report written to /app/test-results-karatsuba-constructor-fix.json
