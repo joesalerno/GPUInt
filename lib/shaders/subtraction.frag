@@ -26,5 +26,7 @@ void main() {
         borrowOut = 0.0;
     }
 
-    gl_FragColor = vec4(resultLimb, borrowOut, 0.0, 1.0); // Output: result limb and borrow out
+    // DEBUG: Output raw inputs
+    gl_FragColor = vec4(limb1, limb2, borrowIn, 1.0);
+    // gl_FragColor = vec4(resultLimb, borrowOut, 0.0, 1.0); // Original output
 }
