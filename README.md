@@ -58,4 +58,77 @@ console.log(sum.toString());  // Output: 111111111011111111100
 
 This project is primarily a learning exercise and proof-of-concept. Contributions or suggestions are welcome, keeping in mind the experimental nature of the project.
 
+## Development Checklist
+
+This checklist tracks the implementation progress towards compatibility with the `big.js` API and other project goals.
+
+**Core `big.js` API Compatibility:**
+
+*   **Constructor:**
+    *   [x] `Big(n)` (as `BigIntPrimitive(value)`)
+*   **Static Properties:**
+    *   [x] `DP` (BigIntPrimitive.DP)
+    *   [x] `RM` (BigIntPrimitive.RM)
+    *   [x] `NE` (BigIntPrimitive.NE)
+    *   [x] `PE` (BigIntPrimitive.PE)
+    *   [x] `strict` (BigIntPrimitive.strict)
+    *   [x] `roundDown` (BigIntPrimitive.roundDown)
+    *   [x] `roundHalfUp` (BigIntPrimitive.roundHalfUp)
+    *   [x] `roundHalfEven` (BigIntPrimitive.roundHalfEven)
+    *   [x] `roundUp` (BigIntPrimitive.roundUp)
+*   **Instance Methods:**
+    *   [x] `abs()`
+    *   [x] `cmp(n)`
+    *   [~] `div(n)` (Stubbed, CPU only)
+    *   [x] `eq(n)`
+    *   [x] `gt(n)`
+    *   [x] `gte(n)`
+    *   [x] `lt(n)`
+    *   [x] `lte(n)`
+    *   [x] `minus(n)` (Implemented as `subtract(n)`, alias exists)
+    *   [~] `mod(n)` (Stubbed as `remainder(n)`, CPU only, alias exists)
+    *   [x] `neg()` (Implemented as `negate()`, alias exists)
+    *   [x] `plus(n)` (Implemented as `add(n)`, alias exists)
+    *   [x] `pow(n)` (Implemented, CPU only, integer exponents)
+    *   [~] `prec(sd, rm)` (Stubbed, CPU only)
+    *   [~] `round(dp, rm)` (Stubbed, CPU only)
+    *   [~] `sqrt()` (Stubbed, CPU only)
+    *   [x] `times(n)` (Implemented as `multiply(n)`, alias exists)
+    *   [~] `toExponential(dp, rm)` (Stubbed, CPU only)
+    *   [~] `toFixed(dp, rm)` (Stubbed, CPU only)
+    *   [x] `toJSON()` (Implicitly via `toString()`)
+    *   [ ] `toNumber()`
+    *   [~] `toPrecision(sd, rm)` (Stubbed, CPU only)
+    *   [x] `toString()`
+    *   [ ] `valueOf()` (big.js version differs slightly for -0)
+*   **Instance Properties (Conceptual Mapping):**
+    *   [x] `c` (coefficient - mapped to `this.limbs`)
+    *   [x] `e` (exponent - mapped to `this.exponent`)
+    *   [x] `s` (sign - mapped to `this.sign`)
+
+**Legend:**
+*   [x] Implemented
+*   [~] Stubbed (exists but not fully functional, typically CPU only)
+*   [ ] Not Implemented
+
+**Additional Project Goals:**
+
+*   [ ] Full WebGL implementation for `add`
+*   [ ] Full WebGL implementation for `subtract`
+*   [~] WebGL implementation for `multiply` (partially done via `_webgl_multiply_one_limb_by_bigint`)
+*   [ ] Full WebGL implementation for `div`
+*   [ ] Full WebGL implementation for `sqrt`
+*   [ ] Full WebGL implementation for rounding/precision methods
+*   [ ] Comprehensive performance benchmarking (CPU vs GPU)
+*   [ ] Code refactor for conciseness and functional style
+*   [ ] Enhanced error handling
+*   [ ] Packaging for browser and Node.js environments
+*   [ ] Support for negative exponents in `pow()`
+*   [ ] Complete all stubbed methods with robust CPU implementations.
+
+**Notes on `lib/bigint.js` vs `big.js`:**
+*   `BigIntPrimitive` uses a BASE (e.g., 10000) for its internal limb representation, while `big.js` typically uses an array of base-10 digits for its coefficient.
+*   The meaning of `exponent` in `BigIntPrimitive` relates to the scaling of its limbs, which might differ from `big.js`'s direct power-of-10 exponent for the entire number.
+*   The current WebGL implementation for `add` is incomplete (falls back to CPU). `subtract` and `multiply` have more developed WebGL paths but might also need further review and completion.
+
 ```
