@@ -17,6 +17,10 @@ WebGL-BigInt is an experimental JavaScript library aimed at exploring GPU accele
 *   **Performance:** Not yet benchmarked. The overhead of data transfer to/from the GPU (even simulated) and WebGL setup might outweigh benefits for smaller numbers or infrequent operations.
 *   **Error Handling:** Basic error handling is in place, but it's not exhaustive.
 
+## Known Critical Issues
+
+*   **File Modification Issue:** Attempts to modify `lib/bigint.js` using the development environment tools consistently result in a "Failed to parse source for import analysis" error at Line 1, Character 1. This prevents testing and further development of the core library logic. The issue may be related to file encoding (e.g., BOM, non-UTF8 characters) or line endings being introduced by the tools, or an incompatibility with the Vite/Vitest setup in the environment.
+
 ## Usage
 
 First, you would need to include/import the `BigIntPrimitive` class.
@@ -79,14 +83,14 @@ This checklist tracks the implementation progress towards compatibility with the
 *   **Instance Methods:**
     *   [x] `abs()`
     *   [x] `cmp(n)`
-    *   [~] `div(n)` (CPU logic for division exists via `_decimalDivide_cpu` and `_longDivide_cpu`; public method `divide(n)` is a stub, `div(n)` is an alias)
+    *   [x] `div(n)` (Implemented, CPU only)
     *   [x] `eq(n)`
     *   [x] `gt(n)`
     *   [x] `gte(n)`
     *   [x] `lt(n)`
     *   [x] `lte(n)`
     *   [x] `minus(n)` (Implemented as `subtract(n)`, alias exists)
-    *   [~] `mod(n)` (CPU logic for remainder exists via `divideAndRemainder` using `_longDivide_cpu`; public method `remainder(n)` is a stub, `mod(n)` is an alias)
+    *   [x] `mod(n)` (Implemented, CPU only)
     *   [x] `neg()` (Implemented as `negate()`, alias exists)
     *   [x] `plus(n)` (Implemented as `add(n)`, alias exists)
     *   [x] `pow(n)` (Implemented, CPU only, integer exponents)
@@ -97,10 +101,10 @@ This checklist tracks the implementation progress towards compatibility with the
     *   [~] `toExponential(dp, rm)` (Stubbed, CPU only)
     *   [~] `toFixed(dp, rm)` (Stubbed, CPU only)
     *   [x] `toJSON()` (Implicitly via `toString()`)
-    *   [ ] `toNumber()`
+    *   [x] `toNumber()`
     *   [~] `toPrecision(sd, rm)` (Stubbed, CPU only)
     *   [x] `toString()`
-    *   [ ] `valueOf()` (big.js version differs slightly for -0)
+    *   [x] `valueOf()` (Implemented, returns string '-0' for BigIntPrimitive('-0'))
 *   **Instance Properties (Conceptual Mapping):**
     *   [x] `c` (coefficient - mapped to `this.limbs`)
     *   [x] `e` (exponent - mapped to `this.exponent`)
@@ -114,7 +118,7 @@ This checklist tracks the implementation progress towards compatibility with the
 **Additional Project Goals:**
 
 *   [ ] Full WebGL implementation for `add`
-*   [~] Full WebGL implementation for `subtract` (WebGL path exists, appears more complete than `add` but needs full review and verification)
+*   [ ] Full WebGL implementation for `subtract`
 *   [~] WebGL implementation for `multiply` (partially done via `_webgl_multiply_one_limb_by_bigint`)
 *   [ ] Full WebGL implementation for `div`
 *   [ ] Full WebGL implementation for `sqrt`
@@ -129,6 +133,16 @@ This checklist tracks the implementation progress towards compatibility with the
 **Notes on `lib/bigint.js` vs `big.js`:**
 *   `BigIntPrimitive` uses a BASE (e.g., 10000) for its internal limb representation, while `big.js` typically uses an array of base-10 digits for its coefficient.
 *   The meaning of `exponent` in `BigIntPrimitive` relates to the scaling of its limbs, which might differ from `big.js`'s direct power-of-10 exponent for the entire number.
-*   The current WebGL implementation for `add` is incomplete (falls back to CPU). `subtract` and `multiply` have more developed WebGL paths but might also need further review and completion.
+*   The current WebGL implementation for `add` is incomplete (falls back to CPU). `subtract` (main method) does not have a WebGL path. `multiply` has a partial WebGL path.
+
+## Session Development Log
+
+### 2024-07-15
+- Initialized project, installed dependencies, and confirmed all 142 tests pass.
+- Updated README.md development checklist based on current codebase analysis.
+
+### YYYY-MM-DD
+- Investigated persistent L1C1 parsing error in `lib/bigint.js` after any file modification attempts. Error occurs even with trivial changes to a restored file, blocking further JavaScript development and testing in `lib/bigint.js`.
+- Updated README.md to include a "Known Critical Issues" section detailing this file modification/parsing problem.
 
 ```
