@@ -116,7 +116,7 @@ This checklist tracks the implementation progress towards compatibility with the
 
 **Additional Project Goals:**
 
-*   [ ] Full WebGL implementation for `add`
+*   [~] WebGL implementation for add (Attempted GPU pass + CPU fixup; blocked by shader varying v_texCoord issue)
 *   [ ] Full WebGL implementation for `subtract`
 *   [~] WebGL implementation for `multiply` (partially done via `_webgl_multiply_one_limb_by_bigint`)
 *   [ ] Full WebGL implementation for `div`
@@ -135,6 +135,11 @@ This checklist tracks the implementation progress towards compatibility with the
 *   Core arithmetic (`add`, `subtract`, `multiply`) CPU implementations are robust after refactoring for `BASE = 10000` and consistent exponent handling.
 
 ## Session Development Log
+
+### 2024-07-19 (Continued Further)
+- Implemented WebGL `add` path: data preparation, shader execution (using `addition.frag`), and CPU-side post-processing (reading GPU output, propagating carries).
+- Testing revealed a critical issue: the fragment shader's `v_texCoord.x` varying appears non-functional (stuck at 0), causing incorrect limb processing.
+- Next steps will focus on diagnosing and fixing this WebGL varying interpolation problem.
 
 ### 2024-07-19 (Continued)
 - Implemented CPU versions of `prec(sd, rm)` and `toPrecision(sd, rm)`. Core numerical logic is functional and passes most tests.
