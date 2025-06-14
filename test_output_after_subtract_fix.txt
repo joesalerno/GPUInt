@@ -1,0 +1,27 @@
+
+> gpu-bigint@0.0.0 test
+> vitest
+
+
+ RUN  v3.2.3 /app
+
+ ✓ |chromium| lib/bigint.test.js (35 tests) 33ms
+ ❯ |chromium| lib/bigint.webgl.test.js (10 tests | 2 failed) 510ms
+   ✓ BigIntPrimitive WebGL Operations > add() - WebGL Path > should add two small BigIntPrimitives using WebGL (e.g., "123" + "456" = "579") 20ms
+   ✓ BigIntPrimitive WebGL Operations > add() - WebGL Path > should add two larger BigIntPrimitives requiring multiple limbs using WebGL (e.g., "8000" + "7000" = "15000") 21ms
+   ✓ BigIntPrimitive WebGL Operations > add() - WebGL Path > should handle adding zero to a number using WebGL 20ms
+   ✓ BigIntPrimitive WebGL Operations > subtract() - WebGL Path > should subtract two positive single-limb numbers, no borrow (e.g., "567" - "123" = "444") 23ms
+   ✓ BigIntPrimitive WebGL Operations > subtract() - WebGL Path > should subtract with borrow (e.g., "123" - "34" = "89") 22ms
+   ✓ BigIntPrimitive WebGL Operations > subtract() - WebGL Path > should handle subtracting to zero (e.g., "123" - "123" = "0") 1ms
+   ✓ BigIntPrimitive WebGL Operations > subtract() - WebGL Path > should handle subtracting a larger number from a smaller one (e.g., "100" - "200" = "-100") 22ms
+   × BigIntPrimitive WebGL Operations > multiply() - WebGL Path (Simple Cases) > should multiply two small BigIntPrimitives using WebGL (e.g., "12" * "3" = "36") 233ms
+     → expected '100' to be '36' // Object.is equality
+   ✓ BigIntPrimitive WebGL Operations > multiply() - WebGL Path (Simple Cases) > should multiply with one number being zero using WebGL (e.g., "123" * "0" = "0") 1ms
+   × BigIntPrimitive WebGL Operations > multiply() - WebGL Path (Simple Cases) > should multiply two single-digit numbers using WebGL (e.g., "7" * "8" = "56") 146ms
+     → expected '100' to be '56' // Object.is equality
+ ✓ |chromium| src/App.test.jsx (6 tests) 760ms
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  2 failed | 49 passed (51)
+   Start at  05:19:43
+   Duration  4.03s (transform 0ms, setup 705ms, collect 1.18s, tests 1.30s, environment 0ms, prepare 6.11s)
