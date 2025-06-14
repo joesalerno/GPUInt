@@ -56,13 +56,40 @@
   align-self: center; /* Center the button */
   margin-top: 1rem;
 }
-.calculate-btn:hover {
+
+.format-btn {
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: border-color 0.25s;
+  color: rgba(255, 255, 255, 0.87);
+  align-self: center; /* Center the button */
+  margin-top: 0.5rem; /* Space above the format button */
+}
+
+.calculate-btn:hover,
+.format-btn:hover {
   border-color: #646cff;
 }
 .calculate-btn:focus,
-.calculate-btn:focus-visible {
+.calculate-btn:focus-visible,
+.format-btn:focus,
+.format-btn:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+
+.form-group h4 {
+  width: 100%; /* Make the heading take full width */
+  text-align: left; /* Align text to the left */
+  margin-bottom: 0.5rem; /* Space below the heading */
+  font-size: 1.1em; /* Slightly larger font for the heading */
+}
+
 
 .result-area,
 .error-area {

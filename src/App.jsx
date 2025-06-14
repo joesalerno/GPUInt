@@ -9,6 +9,14 @@ function App() {
   const [forceCPU, setForceCPU] = useState(false);
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
+  const [formatOptions, setFormatOptions] = useState({
+    decimalPlaces: 2,
+    useGrouping: false,
+    style: 'decimal',
+    currency: 'USD',
+    currencyDisplay: 'symbol',
+    notation: 'standard'
+  });
 
   const canvasRef = useRef(null);
 
@@ -55,6 +63,37 @@ function App() {
       setError(`Error: ${e.message}${e.stack ? `\nStack: ${e.stack}` : ''}`);
     }
   };
+
+  const handleFormat = () => {
+    setResult("");
+    setError("");
+
+    if (!canvasRef.current) {
+      setError("Error: Canvas element not found.");
+      return;
+    }
+
+    try {
+      const options = { forceCPU: forceCPU };
+      const bigInt1 = new BigIntPrimitive(num1, canvasRef.current, options);
+      // Ensure formatOptions state is correctly passed
+      const formattedResult = bigInt1.toFormat(formatOptions);
+      setResult(formattedResult);
+    } catch (e) {
+      console.error("Formatting error:", e);
+      setResult(''); // Clear previous result
+      setError(`Error: ${e.message}${e.stack ? `\nStack: ${e.stack}` : ''}`);
+    }
+  };
+
+  const handleFormatOptionChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormatOptions(prevOptions => ({
+      ...prevOptions,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
 
   return (
     <div className="App">
@@ -107,6 +146,89 @@ function App() {
       </div>
 
       <button onClick={handleCalculate} className="calculate-btn">Calculate</button>
+      <button onClick={handleFormat} className="format-btn">Format Number 1</button>
+
+      <div className="form-group">
+        <h4>Formatting Options for Number 1:</h4>
+        <label htmlFor="decimalPlacesInput">Decimal Places:</label>
+        <input
+          type="number"
+          id="decimalPlacesInput"
+          name="decimalPlaces"
+          value={formatOptions.decimalPlaces}
+          onChange={handleFormatOptionChange}
+        />
+      </div>
+      <div className="form-group">
+        <label htmlFor="useGroupingCheckbox">Use Grouping:</label>
+        <input
+          type="checkbox"
+          id="useGroupingCheckbox"
+          name="useGrouping"
+          checked={formatOptions.useGrouping}
+          onChange={handleFormatOptionChange}
+        />
+      </div>
+      {/* Add more input fields for other Intl.NumberFormatOptions as needed */}
+      {/* Example for 'style' */}
+      <div className="form-group">
+        <label htmlFor="styleSelect">Style:</label>
+        <select
+          id="styleSelect"
+          name="style"
+          value={formatOptions.style}
+          onChange={handleFormatOptionChange}
+        >
+          <option value="decimal">Decimal</option>
+          <option value="currency">Currency</option>
+          <option value="percent">Percent</option>
+        </select>
+      </div>
+      {/* Conditional rendering for currency options */}
+      {formatOptions.style === 'currency' && (
+        <>
+          <div className="form-group">
+            <label htmlFor="currencyInput">Currency Code:</label>
+            <input
+              type="text"
+              id="currencyInput"
+              name="currency"
+              value={formatOptions.currency}
+              onChange={handleFormatOptionChange}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="currencyDisplaySelect">Currency Display:</label>
+            <select
+              id="currencyDisplaySelect"
+              name="currencyDisplay"
+              value={formatOptions.currencyDisplay}
+              onChange={handleFormatOptionChange}
+            >
+              <option value="symbol">Symbol</option>
+              <option value="narrowSymbol">Narrow Symbol</option>
+              <option value="code">Code</option>
+              <option value="name">Name</option>
+            </select>
+          </div>
+        </>
+      )}
+      {/* Example for 'notation' */}
+      <div className="form-group">
+        <label htmlFor="notationSelect">Notation:</label>
+        <select
+          id="notationSelect"
+          name="notation"
+          value={formatOptions.notation}
+          onChange={handleFormatOptionChange}
+        >
+          <option value="standard">Standard</option>
+          <option value="scientific">Scientific</option>
+          <option value="engineering">Engineering</option>
+          <option value="compact">Compact</option>
+        </select>
+      </div>
+
 
       <h3>Result:</h3>
       <pre id="resultArea" data-testid="result-area" className="result-area">{result}</pre>

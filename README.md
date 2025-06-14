@@ -79,19 +79,19 @@ This checklist tracks the implementation progress towards compatibility with the
 *   **Instance Methods:**
     *   [x] `abs()`
     *   [x] `cmp(n)`
-    *   [~] `div(n)` (Stubbed, CPU only)
+    *   [~] `div(n)` (CPU logic for division exists via `_decimalDivide_cpu` and `_longDivide_cpu`; public method `divide(n)` is a stub, `div(n)` is an alias)
     *   [x] `eq(n)`
     *   [x] `gt(n)`
     *   [x] `gte(n)`
     *   [x] `lt(n)`
     *   [x] `lte(n)`
     *   [x] `minus(n)` (Implemented as `subtract(n)`, alias exists)
-    *   [~] `mod(n)` (Stubbed as `remainder(n)`, CPU only, alias exists)
+    *   [~] `mod(n)` (CPU logic for remainder exists via `divideAndRemainder` using `_longDivide_cpu`; public method `remainder(n)` is a stub, `mod(n)` is an alias)
     *   [x] `neg()` (Implemented as `negate()`, alias exists)
     *   [x] `plus(n)` (Implemented as `add(n)`, alias exists)
     *   [x] `pow(n)` (Implemented, CPU only, integer exponents)
     *   [~] `prec(sd, rm)` (Stubbed, CPU only)
-    *   [~] `round(dp, rm)` (Stubbed, CPU only)
+    *   [x] `round(dp, rm)` (CPU implementation exists using `_staticRound_cpu`)
     *   [~] `sqrt()` (Stubbed, CPU only)
     *   [x] `times(n)` (Implemented as `multiply(n)`, alias exists)
     *   [~] `toExponential(dp, rm)` (Stubbed, CPU only)
@@ -114,7 +114,7 @@ This checklist tracks the implementation progress towards compatibility with the
 **Additional Project Goals:**
 
 *   [ ] Full WebGL implementation for `add`
-*   [ ] Full WebGL implementation for `subtract`
+*   [~] Full WebGL implementation for `subtract` (WebGL path exists, appears more complete than `add` but needs full review and verification)
 *   [~] WebGL implementation for `multiply` (partially done via `_webgl_multiply_one_limb_by_bigint`)
 *   [ ] Full WebGL implementation for `div`
 *   [ ] Full WebGL implementation for `sqrt`
