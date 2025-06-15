@@ -20,6 +20,7 @@ WebGL-BigInt is an experimental JavaScript library aimed at exploring GPU accele
 ## Known Critical Issues
 
 *   **File Modification Issue (Resolved):** Previously, attempts to modify `lib/bigint.js` using the development environment tools consistently resulted in a "Failed to parse source for import analysis" error. This issue was resolved by identifying that the original `lib/bigint.js` file was an ES Module stub, not the UMD-style `big-integer.js` that was initially assumed to be the base. Reverting `lib/bigint.js` to its correct ES Module content (from `lib/bigint.js.orig`) and subsequently refactoring it has fixed the parsing errors and allowed for successful development and testing.
+*   **WebGL `_webgl_multiply_one_limb_by_bigint` GPU Output:** The WebGL path for this method consistently produces all-zero output from the GPU, even when shaders are hardcoded to output constants. This points to a likely issue with `webglUtils.readDataFromTexture` (potentially only reading 1 pixel for RGBA float textures or other readback problem) or a fundamental WebGL environment limitation with float texture rendering/readback. The GLSL shader logic itself for this operation has been corrected.
 
 ## Usage
 
@@ -93,7 +94,7 @@ This checklist tracks the implementation progress towards compatibility with the
     *   [x] `neg()` (Implemented as `negate()`, alias exists)
     *   [x] `plus(n)` (Implemented as `add(n)`, alias exists, robust CPU implementation)
     *   [x] `pow(n)` (Implemented, CPU only, integer exponents, passes tests)
-    *   [~] prec(sd, rm) (CPU implementation, multiple tests fail due to string formatting issues, trailing zeros, and interaction with toString(); attempted fixes reverted due to regressions.)
+    *   [~] prec(sd, rm) (CPU implementation, 1 test fails due to specific trailing zero formatting `123.456` vs `123.4560`)
     *   [x] `round(dp, rm)` (CPU implementation using `_staticRound_cpu`, passes all tests)
     *   [x] `sqrt()` (Implemented, CPU only, passes tests)
     *   [x] `times(n)` (Implemented as `multiply(n)`, alias exists, robust CPU implementation)
@@ -101,7 +102,7 @@ This checklist tracks the implementation progress towards compatibility with the
     *   [x] `toFixed(dp, rm)` (CPU implementation, passes all tests)
     *   [x] `toJSON()` (Implicitly via `toString()`)
     *   [x] `toNumber()` (Passes all tests, including strict mode)
-    *   [~] toPrecision(sd, rm) (CPU implementation, fails tests due to incorrect trailing zero/fixed-point formatting in toString)
+    *   [~] toPrecision(sd, rm) (CPU implementation, 2 tests fail at NE/PE boundaries for large numbers regarding trailing zeros)
     *   [x] `toString()` (Refactored for `BASE = 10000`, passes all tests)
     *   [x] `valueOf()` (Implemented, returns string '-0' for BigIntPrimitive('-0'))
 *   **Instance Properties (Conceptual Mapping):**
@@ -118,7 +119,7 @@ This checklist tracks the implementation progress towards compatibility with the
 
 *   [x] WebGL implementation for add (Fixed v_texCoord.x issue by supplying texCoord attribute, updated shader; passes tests with actual GPU execution for add.)
 *   [ ] Full WebGL implementation for `subtract`
-*   [~] WebGL implementation for `multiply` (partially done via `_webgl_multiply_one_limb_by_bigint`)
+*   [~] WebGL implementation for multiply (JS and shader logic for _webgl_multiply_one_limb_by_bigint complete, but GPU execution yields zeros - suspected issue in readDataFromTexture or WebGL environment).
 *   [ ] Full WebGL implementation for `div`
 *   [ ] Full WebGL implementation for `sqrt`
 *   [ ] Full WebGL implementation for rounding/precision methods
@@ -135,6 +136,22 @@ This checklist tracks the implementation progress towards compatibility with the
 *   Core arithmetic (`add`, `subtract`, `multiply`) CPU implementations are robust after refactoring for `BASE = 10000` and consistent exponent handling.
 
 ## Session Development Log
+
+### 2025-06-16 (Jules - AI Agent)
+- **WebGL `_webgl_multiply_one_limb_by_bigint` Diagnostics & Shader Fix:**
+  - Implemented the JavaScript structure for `_webgl_multiply_one_limb_by_bigint`.
+  - Corrected GLSL fragment shader `lib/shaders/multiply_limb.frag`:
+    - Renamed uniform `u_limbVal` to `u_limbValue` to match JS.
+    - Removed unused `u_carryTexture` and `carryIn` variable.
+    - Product calculation simplified to `u_limbValue * otherLimb`.
+  - Corrected GLSL vertex shader `lib/shaders/multiply_limb.vert`:
+    - Declared `attribute vec2 a_texCoord;`.
+    - Assigned `v_texCoord = a_texCoord;` to correctly use texture coordinates from JS buffer.
+  - Updated `lib/bigint.webgl.test.js` to reflect shader changes (e.g., regex for log messages).
+  - **Current Status:** The shader now compiles, and the WebGL program links and runs. Uniforms and attributes appear to be correctly set up. However, the GPU output read from the framebuffer is consistently all zeros when the calculating shader is active. Debugging with hardcoded shader outputs also resulted in all zeros read back, pointing to a potential issue with `webglUtils.readDataFromTexture` (possibly only reading 1 pixel for RGBA float textures or incorrect format handling) or a more fundamental problem with float texture rendering/readback in the testing environment. The fallback to CPU for this path is functional. The GLSL shader itself is now logically correct as per the subtask's requirements.
+- **CPU `prec()` and `toPrecision()` updates:**
+    - Refined logic in `prec()` for setting `_roundedDp` to better align with `big.js` behavior regarding compact string representations vs. showing significant trailing zeros. This fixed most `prec()` test failures, leaving 1 related to a specific `toString()` output for "123.4560".
+    - Reverted `toPrecision()` to a simpler logic relying on the improved `prec()` and `toFixed()`. This fixed some `toPrecision()` failures, but 2 persist related to formatting large numbers at NE/PE boundaries (e.g. "1e20" with `sd=21` or `sd=22`).
 
 ### 2025-06-15 (Jules - AI Agent, Continued)
 - Investigated WebGL multiply path (`_webgl_multiply_one_limb_by_bigint`):

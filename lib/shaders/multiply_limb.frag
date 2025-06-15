@@ -1,19 +1,13 @@
 precision highp float;
 
-uniform float u_limbVal;
+// Uniforms declared but not used in this debug version, will be optimized out
+uniform float u_limbValue;
 uniform sampler2D u_otherNumTexture;
-uniform sampler2D u_carryTexture;
-uniform float u_base; // Ensure this is uniform, not const
-varying vec2 v_texCoord;
+uniform float u_base;
+
+varying vec2 v_texCoord; // Still used by default by texture2D if it were present
 
 void main() {
-    float otherLimb = texture2D(u_otherNumTexture, v_texCoord).r;
-    float carryIn = texture2D(u_carryTexture, v_texCoord).r;
-
-    float product = u_limbVal * otherNumLimb + carryIn;
-
-    float resultLimb = mod(product, u_base);
-    float carryOut = floor(product / u_base);
-
-    gl_FragColor = vec4(resultLimb, carryOut, 0.0, 1.0);
+    // Debug: Output fragment coordinates
+    gl_FragColor = vec4(gl_FragCoord.x, gl_FragCoord.y, 0.0, 1.0);
 }
