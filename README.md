@@ -116,7 +116,7 @@ This checklist tracks the implementation progress towards compatibility with the
 
 **Additional Project Goals:**
 
-*   [~] WebGL implementation for add (Currently failing: shader returns zero instead of sum; possibly related to v_texCoord.x issue or shader logic)
+*   [x] WebGL implementation for add (Fixed v_texCoord.x issue by supplying texCoord attribute, updated shader; passes tests with actual GPU execution for add.)
 *   [ ] Full WebGL implementation for `subtract`
 *   [~] WebGL implementation for `multiply` (partially done via `_webgl_multiply_one_limb_by_bigint`)
 *   [ ] Full WebGL implementation for `div`
@@ -135,6 +135,21 @@ This checklist tracks the implementation progress towards compatibility with the
 *   Core arithmetic (`add`, `subtract`, `multiply`) CPU implementations are robust after refactoring for `BASE = 10000` and consistent exponent handling.
 
 ## Session Development Log
+
+### 2025-06-15 (Jules - AI Agent)
+- Installed project dependencies via npm install.
+- Initial test run: 285 tests total, 280 passed, 5 failed.
+  - 3 failures in `lib/bigint.test.js` related to CPU string formatting (prec, toPrecision).
+  - 2 critical failures in `lib/bigint.webgl.test.js` for WebGL add() path (returned '0').
+- Investigated WebGL add() path:
+  - Identified missing `a_texCoord` attribute setup in `lib/bigint.js` as the cause for non-functional `v_texCoord.x`.
+  - Replaced debug shader in `lib/shaders/addition.frag` with functional addition logic.
+  - Modified `lib/bigint.js` to correctly provide `a_texCoord` buffer to the vertex shader.
+- Test run after fix: WebGL add() tests now PASS. Total failures reduced to 3 (CPU formatting issues).
+- Verified other GPU paths (subtract/multiply):
+  - Tests in `lib/bigint.webgl.test.js` pass as they mock shader outputs.
+  - Noted that `lib/bigint.js` WebGL path for multiply (`_webgl_multiply_one_limb_by_bigint`) has the same `a_texCoord` omission and would need a similar fix for true end-to-end GPU execution.
+  - Subtraction has no direct WebGL path implemented in JS.
 
 ### 2024-07-19 (Continued Further)
 - Implemented WebGL `add` path: data preparation, shader execution (using `addition.frag`), and CPU-side post-processing (reading GPU output, propagating carries).

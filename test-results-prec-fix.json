@@ -1,0 +1,20 @@
+{
+  "numTotalTestSuites": 25,
+  "numPassedTestSuites": 23,
+  "numFailedTestSuites": 2,
+  "numTotalTests": 285,
+  "numPassedTests": 283,
+  "numFailedTests": 2,
+  "testResults": [
+    {
+      "name": "lib/bigint.test.js",
+      "status": "fail",
+      "summary": "",
+      "assertionResults": [
+        { "fullName": "prec() > toString of prec result: 123.456, prec(7) -> \"123.4560\" (big.js like)", "status": "pass" },
+        { "fullName": "toPrecision() > NE/PE boundary conditions: 1e20, sd=21 (force fixed due to PE)", "status": "fail", "failureMessages": ["Expected '100000000000000000000', got '100000000000000000000.0000000000000000'"] },
+        { "fullName": "toPrecision() > NE/PE boundary conditions: 1e20, sd=22 (force exp due to sd)", "status": "fail", "failureMessages": ["Expected '100000000000000000000.0', got '100000000000000000000.0000000000000000'"] }
+      ]
+    }
+  ]
+}
