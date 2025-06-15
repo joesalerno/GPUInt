@@ -93,7 +93,7 @@ This checklist tracks the implementation progress towards compatibility with the
     *   [x] `neg()` (Implemented as `negate()`, alias exists)
     *   [x] `plus(n)` (Implemented as `add(n)`, alias exists, robust CPU implementation)
     *   [x] `pow(n)` (Implemented, CPU only, integer exponents, passes tests)
-    *   [x] prec(sd, rm) (CPU implementation, minor toString formatting difference for trailing zeros)
+    *   [~] prec(sd, rm) (CPU implementation, fails tests due to incorrect trailing zero handling in toString)
     *   [x] `round(dp, rm)` (CPU implementation using `_staticRound_cpu`, passes all tests)
     *   [x] `sqrt()` (Implemented, CPU only, passes tests)
     *   [x] `times(n)` (Implemented as `multiply(n)`, alias exists, robust CPU implementation)
@@ -101,7 +101,7 @@ This checklist tracks the implementation progress towards compatibility with the
     *   [x] `toFixed(dp, rm)` (CPU implementation, passes all tests)
     *   [x] `toJSON()` (Implicitly via `toString()`)
     *   [x] `toNumber()` (Passes all tests, including strict mode)
-    *   [x] toPrecision(sd, rm) (CPU implementation, minor formatting issues for some large fixed-point numbers)
+    *   [~] toPrecision(sd, rm) (CPU implementation, fails tests due to incorrect trailing zero/fixed-point formatting in toString)
     *   [x] `toString()` (Refactored for `BASE = 10000`, passes all tests)
     *   [x] `valueOf()` (Implemented, returns string '-0' for BigIntPrimitive('-0'))
 *   **Instance Properties (Conceptual Mapping):**
@@ -116,7 +116,7 @@ This checklist tracks the implementation progress towards compatibility with the
 
 **Additional Project Goals:**
 
-*   [~] WebGL implementation for add (Attempted GPU pass + CPU fixup; blocked by shader varying v_texCoord issue)
+*   [~] WebGL implementation for add (Currently failing: shader returns zero instead of sum; possibly related to v_texCoord.x issue or shader logic)
 *   [ ] Full WebGL implementation for `subtract`
 *   [~] WebGL implementation for `multiply` (partially done via `_webgl_multiply_one_limb_by_bigint`)
 *   [ ] Full WebGL implementation for `div`
