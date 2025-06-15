@@ -93,7 +93,7 @@ This checklist tracks the implementation progress towards compatibility with the
     *   [x] `neg()` (Implemented as `negate()`, alias exists)
     *   [x] `plus(n)` (Implemented as `add(n)`, alias exists, robust CPU implementation)
     *   [x] `pow(n)` (Implemented, CPU only, integer exponents, passes tests)
-    *   [~] prec(sd, rm) (CPU implementation, fails tests due to incorrect trailing zero handling in toString)
+    *   [~] prec(sd, rm) (CPU implementation, multiple tests fail due to string formatting issues, trailing zeros, and interaction with toString(); attempted fixes reverted due to regressions.)
     *   [x] `round(dp, rm)` (CPU implementation using `_staticRound_cpu`, passes all tests)
     *   [x] `sqrt()` (Implemented, CPU only, passes tests)
     *   [x] `times(n)` (Implemented as `multiply(n)`, alias exists, robust CPU implementation)
@@ -135,6 +135,20 @@ This checklist tracks the implementation progress towards compatibility with the
 *   Core arithmetic (`add`, `subtract`, `multiply`) CPU implementations are robust after refactoring for `BASE = 10000` and consistent exponent handling.
 
 ## Session Development Log
+
+### 2025-06-15 (Jules - AI Agent, Continued)
+- Investigated WebGL multiply path (`_webgl_multiply_one_limb_by_bigint`):
+  - Added extensive logging and created direct tests with actual GPU execution.
+  - Iterative debugging with simplified shaders confirmed the basic WebGL data pipeline (uniforms, attributes, textures, varyings) is functional for the method.
+  - The full arithmetic `multiply_limb.frag` shader, however, causes the WebGL setup to fail before shader execution completes, likely due to a shader compilation or program linking error. This is currently blocked pending specific GLSL error details. (Approx. 1 test failing for this).
+- Investigated `prec()` CPU formatting (approx. 12 tests failing):
+  - Attempted two different fixes to align string output with big.js (e.g., for '123.4560' precision).
+  - These attempts were reverted due to introducing regressions in other tests (especially `toNumber()`) or not fully solving the target issues.
+  - The `prec()` formatting issues remain unresolved.
+- Investigated `toPrecision()` CPU formatting (approx. 2 tests failing):
+  - Confirmed these failures are linked to `prec()`'s behavior and overall string formatting logic.
+  - No code changes made for `toPrecision()` to prioritize stability. Issues remain unresolved.
+- Current total failing tests: ~16 (includes WebGL multiply, prec, and toPrecision).
 
 ### 2025-06-15 (Jules - AI Agent)
 - Installed project dependencies via npm install.
