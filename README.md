@@ -58,19 +58,18 @@ This checklist tracks the implementation progress towards compatibility with the
 
 *   [~] Achieve full `big.js` API compatibility. (`pow` negative exponents added)
 *   [x] Ensure all CPU path tests pass consistently.
-*   [x] Ensure all GPU path (WebGL) tests pass consistently. (WebGL multiplication test fixed!)
+*   [x] Ensure all GPU path (WebGL) tests pass consistently.
 *   [x] Implement and verify React component tests. (Implicitly passing via `npm test`)
-*   [ ] Concise, functional code with simple, short functions. (Ongoing refinement)
-*   [ ] GPU acceleration for blazingly fast BigDecimal math. (Functionality improving, performance TBD)
+*   [ ] Implement entire big.js API.
+*   [ ] Refine code to be concise and functional with simple, short functions. (Ongoing)
+*   [ ] Optimize GPU acceleration for blazingly fast BigDecimal math. (Performance TBD)
 *   [x] Maintain this ongoing living development checklist in README.md.
 
 **Key Bug Fixes & Issues:**
-
-*   [x] WebGL `_webgl_multiply_one_limb_by_bigint` produces incorrect result. (Fixed: Caused by mock persistence in test setup. Changed `vi.clearAllMocks()` to `vi.restoreAllMocks()` in `lib/bigint.webgl.test.js`)
 *   [~] Investigate and resolve any test environment instability. (Subtasks for file modification still timed out in previous plan, but `npm test` itself now runs cleanly.)
 
 **Core `big.js` API Compatibility (CPU Path):**
-(Status from previous update, `pow` enhanced)
+(Status from previous update, `pow` enhanced. Full audit against big.js docs pending.)
 *   **Constructor:**
     *   [x] `Big(n)` (as `BigIntPrimitive(value)`)
 *   **Static Properties:**
@@ -109,6 +108,10 @@ This checklist tracks the implementation progress towards compatibility with the
 *   [ ] Not Implemented / Pending.
 
 ## Session Development Log
+
+### 2024-07-25 (Jules - AI Agent)
+- Confirmed all existing tests (CPU, WebGL, React) are passing after dependency installation.
+- Updated README.md checklist to reflect current project status and goals.
 
 ### 2025-06-17 (Jules - AI Agent - Current Session Continued)
 - Pivoted from direct WebGL debugging (due to subtask timeouts for file modification) to running React app tests.
