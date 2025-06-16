@@ -68,9 +68,9 @@ This checklist tracks the implementation progress towards compatibility with the
 
 **Overall Project Status:**
 
-*   [x] Verify all CPU path tests pass consistently. (Based on recent comprehensive runs)
-*   [~] Verify/Fix all GPU path (WebGL) tests.
-*   [ ] Implement and verify React component tests.
+*   [!] Verify all CPU path tests pass consistently. (Currently blocked by test environment issues)
+*   [!] Verify/Fix all GPU path (WebGL) tests. (Currently blocked by test environment issues)
+*   [!] Implement and verify React component tests. (Currently blocked by test environment issues)
 
 **Key Bug Fixes & Issues:**
 
@@ -144,6 +144,14 @@ This checklist tracks the implementation progress towards compatibility with the
 *   [x] Maintain this checklist.
 
 ## Session Development Log
+
+### YYYY-MM-DD (Jules - AI Agent)
+- Attempted to run project tests (`npm test`).
+- Encountered persistent 'Internal error occurred when running command' with the test environment.
+- This error prevented execution of CPU, GPU, and React app tests.
+- Even a minimal test case failed with the same error, indicating a fundamental environment issue.
+- Test verification steps are currently blocked.
+- Proceeding with README updates and planning for big.js API implementation.
 
 ### 2025-06-16 (Jules - AI Agent)
 - **WebGL `_webgl_multiply_one_limb_by_bigint` Diagnostics & Shader Fix:**
