@@ -19,7 +19,7 @@ WebGL-BigInt is an experimental JavaScript library aimed at exploring GPU accele
 
 ## Known Issues
 
-*   **Test Environment Stability:** Previous sessions reported issues with the test environment itself (e.g., 'Internal error occurred when running command', subtask timeouts when modifying files). This issue was encountered again in the current session (2025-06-18), preventing test execution. This needs to be monitored.
+* vite app doesn't work due to missing index.html
 
 ## Usage
 
@@ -107,55 +107,3 @@ This checklist tracks the implementation progress towards compatibility with the
 *   [~] Partially implemented or minor known differences/issues.
 *   [!] Known critical issue or test failure. (None currently!)
 *   [ ] Not Implemented / Pending.
-
-## Session Development Log
-
-### 2025-06-18 - Jules - AI Agent
-- Started session.
-- Attempted to verify test status by running `npm test`.
-- Encountered persistent 'Internal error occurred when running command' in the subtask environment, preventing test execution. This is a known, ongoing issue.
-- Proceeding with other plan steps, such as README updates and `big.js` API analysis.
-- Fetched `big.js` API documentation.
-- Compared `big.js` API with the `README.md` checklist: all CPU methods appeared to be implemented.
-- Inspected `lib/bigint.js`: Confirmed that all `big.js` CPU path API methods and static properties are present in the `BigIntPrimitive` class.
-- No new methods were added as all seem to be pre-existing for the CPU path.
-
-### 2024-07-26 - Jules - AI Agent
-- Reviewed project structure and `package.json`.
-- Successfully ran all existing tests (`vitest`) - all tests passing.
-- Analyzed test coverage for CPU, WebGL, and React app.
-- Confirmed no failing tests to verify.
-- Updated this `README.md` checklist and session log.
-- Next step: Detailed planning for `big.js` API implementation.
-
-### 2024-07-25 (Jules - AI Agent)
-- Confirmed all existing tests (CPU, WebGL, React) are passing after dependency installation.
-- Updated README.md checklist to reflect current project status and goals.
-
-### 2025-06-17 (Jules - AI Agent - Current Session Continued)
-- Pivoted from direct WebGL debugging (due to subtask timeouts for file modification) to running React app tests.
-- An `npm test` run within a subtask surprisingly fixed the longstanding WebGL multiplication failure.
-    - **Root Cause:** A `vi.clearAllMocks()` in `lib/bigint.webgl.test.js` was not sufficiently cleaning up mocks between tests. A mock for `webglUtils.readDataFromTexture` from a `subtract()` test was persisting and causing the `multiply()` test to receive truncated data.
-    - **Fix:** Changed `vi.clearAllMocks()` to `vi.restoreAllMocks()` in the `beforeEach` hook of `lib/bigint.webgl.test.js`.
-- **All tests in the suite are now passing!** This includes CPU, WebGL, and implicitly React app tests covered by the main test script.
-- Updated this `README.md` to reflect the resolution of the WebGL bug and the current all-green test status.
-
-### 2025-06-16 (Jules - AI Agent - Previous part of session)
-- Started by listing files to understand project structure.
-- Examined `package.json` to find test script (`vitest`).
-- Created initial plan to run tests, fix failures, update README, and implement `big.js` API.
-- Ran tests: Identified 1 failing test: `BigIntPrimitive WebGL Operations > multiply() - WebGL Path (Simple Cases) > [_webgl_multiply_one_limb_by_bigint]`.
-- Verified failing test and analyzed code.
-- Updated `pow()` method to support negative exponents and added comprehensive tests for it.
-- Updated `README.md` with initial findings and `pow` update.
-
-### Previous Session Logs (Summarized from existing README)
-- **2025-06-16 (Agent):** WebGL `_webgl_multiply_one_limb_by_bigint` diagnostics, shader fixes. CPU `prec()` and `toPrecision()` updates and fixes.
-- **2025-06-15 (Continued Agent):** Further investigation into WebGL multiply, `prec()`, and `toPrecision()` CPU formatting.
-- **2025-06-15 (Agent):** Initial test run (5 failures). Fixed WebGL `add()` path.
-- **2024-07-19 (Further Agent):** Implemented WebGL `add` path and CPU post-processing. Identified `v_texCoord.x` issue.
-- **2024-07-19 (Agent):** Implemented CPU `prec()` and `toPrecision()`. Refactored `compareMagnitude`.
-- **2024-07-18 (Agent):** Installed dependencies, 199 tests passing.
-- **2024-07-15 (Agent):** Initialized project, 142 tests passing.
-- **2024-07-16 (Placeholder Agent):** Investigated and resolved `lib/bigint.js` parsing error by reverting to correct ES Module base.
-- **2024-07-17 (Placeholder Agent):** Extensive refactoring of `lib/bigint.js`. All 199 tests passing after this.
