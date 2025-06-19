@@ -256,4 +256,30 @@ describe('App Component', () => {
     }));
   });
 
+  it('should polyfill BigInt if not available and main.jsx is imported', async () => {
+    const originalBigInt = window.BigInt;
+    delete window.BigInt; // Simulate environment where BigInt is not defined
+
+    try {
+      // Dynamically import main.jsx to trigger polyfill execution
+      await import('../src/main.jsx');
+
+      expect(window.BigInt).toBeDefined();
+      // Test if the polyfilled BigInt can perform a basic operation
+      const testBigIntValue = window.BigInt(123);
+      expect(testBigIntValue.toString()).toBe('123');
+      // Test a simple operation if your polyfill supports it, e.g., addition
+      // This depends on the polyfill's capabilities.
+      // For the provided simplified polyfill, direct arithmetic operations like + might not work.
+      // We are testing the .toString() and constructor primarily.
+      if (typeof originalBigInt !== 'undefined') {
+         // If there was a native BigInt, check if our polyfill's valueOf gives a number
+         expect(testBigIntValue.valueOf()).toBe(123);
+      }
+
+    } finally {
+      // Restore original BigInt (if it existed) to not affect other tests
+      window.BigInt = originalBigInt;
+    }
+  });
 });
