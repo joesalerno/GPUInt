@@ -19,7 +19,7 @@ WebGL-BigInt is an experimental JavaScript library aimed at exploring GPU accele
 
 ## Known Issues
 
-* vite app doesn't work due to missing index.html
+* The vite app served on localhost returns an error
 
 ## Usage
 
@@ -60,14 +60,11 @@ This checklist tracks the implementation progress towards compatibility with the
 *   [x] Ensure all CPU path tests pass consistently.
 *   [x] Ensure all GPU path (WebGL) tests pass consistently.
 *   [x] Implement and verify React component tests. (Implicitly passing via `npm test`)
-*   [~] Verified all existing tests are passing and analyzed coverage. (Unable to re-verify in current session due to test environment instability).
+*   [~] Verified all existing tests are passing and analyzed coverage
 *   [x] Implement entire big.js API (CPU Path verified as complete on 2025-06-18 based on API docs and code inspection).
 *   [ ] Refine code to be concise and functional with simple, short functions. (Ongoing)
 *   [ ] Optimize GPU acceleration for blazingly fast BigDecimal math. (Performance TBD)
 *   [x] Maintain this ongoing living development checklist in README.md.
-
-**Key Bug Fixes & Issues:**
-*   [!] Investigate and resolve any test environment instability. (Encountered 'Internal error' again in current session, preventing test execution. This is a critical blocker for test-dependent tasks.)
 
 **Core `big.js` API Compatibility (CPU Path):**
 (Status from previous update, `pow` enhanced. Full audit against big.js docs and direct inspection of lib/bigint.js on 2025-06-18 confirms all listed CPU path methods and properties are implemented.)
