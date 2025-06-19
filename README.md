@@ -19,7 +19,7 @@ WebGL-BigInt is an experimental JavaScript library aimed at exploring GPU accele
 
 ## Known Issues
 
-* vite app doesn't work due to missing index.html
+* [RESOLVED] vite app doesn't work due to missing index.html (Fixed by adding public/index.html)
 
 ## Usage
 
@@ -57,17 +57,18 @@ This checklist tracks the implementation progress towards compatibility with the
 **Overall Project Goals:**
 
 *   [x] Achieve full `big.js` API compatibility (CPU Path verified via code inspection on 2025-06-18, including pow negative exponents).
-*   [x] Ensure all CPU path tests pass consistently.
-*   [x] Ensure all GPU path (WebGL) tests pass consistently.
-*   [x] Implement and verify React component tests. (Implicitly passing via `npm test`)
-*   [~] Verified all existing tests are passing and analyzed coverage. (Unable to re-verify in current session due to test environment instability).
+*   [!] Ensure all CPU path tests pass consistently. (Currently blocked by test environment instability preventing `npm test`.)
+*   [!] Ensure all GPU path (WebGL) tests pass consistently. (Currently blocked by test environment instability preventing `npm test`.)
+*   [!] Implement and verify React component tests. (Currently blocked by test environment instability preventing `npm test`.)
+*   [!] Verified all existing tests are passing and analyzed coverage. (Currently blocked: Unable to re-verify in current session due to test environment instability that prevents `npm install` and `npm test` from running.)
 *   [x] Implement entire big.js API (CPU Path verified as complete on 2025-06-18 based on API docs and code inspection).
 *   [ ] Refine code to be concise and functional with simple, short functions. (Ongoing)
 *   [ ] Optimize GPU acceleration for blazingly fast BigDecimal math. (Performance TBD)
 *   [x] Maintain this ongoing living development checklist in README.md.
 
 **Key Bug Fixes & Issues:**
-*   [!] Investigate and resolve any test environment instability. (Encountered 'Internal error' again in current session, preventing test execution. This is a critical blocker for test-dependent tasks.)
+*   [!] Investigate and resolve any test environment instability. (Encountered 'Internal error' again in current session, preventing `npm install` and `npm test` execution. This is a critical blocker for test-dependent tasks.)
+*   [x] Create public/index.html to allow Vite app to run.
 
 **Core `big.js` API Compatibility (CPU Path):**
 (Status from previous update, `pow` enhanced. Full audit against big.js docs and direct inspection of lib/bigint.js on 2025-06-18 confirms all listed CPU path methods and properties are implemented.)
@@ -89,21 +90,21 @@ This checklist tracks the implementation progress towards compatibility with the
 
 **WebGL Path Implementation & Verification:**
 
-*   [x] WebGL: `add()` path structure exists. (Functionality verified)
+*   [~] WebGL: `add()` path structure exists. (Functionality previously verified, re-verification blocked by test environment instability.)
 *   [ ] WebGL: `subtract()` path implementation.
-*   [x] WebGL: `multiply()` path (`_webgl_multiply_one_limb_by_bigint` test now PASSING).
+*   [~] WebGL: `multiply()` path (`_webgl_multiply_one_limb_by_bigint` test previously PASSING, re-verification blocked by test environment instability.)
 *   [ ] WebGL: `div()` path implementation.
 *   [ ] WebGL: `sqrt()` path implementation.
 *   [ ] WebGL: Rounding/precision methods GPU implementation.
 
 **React Application:**
 
-*   [x] Verify React app tests. (Implicitly passing as part of `npm test` full suite)
-*   [ ] Ensure React app correctly uses the library for CPU paths. (Manual check needed)
-*   [ ] Ensure React app correctly uses the library for GPU paths. (Manual check needed)
+*   [!] Verify React app tests. (Currently blocked by test environment instability preventing `npm test`.)
+*   [ ] Ensure React app correctly uses the library for CPU paths. (Manual check needed, blocked by environment instability if app execution is required.)
+*   [ ] Ensure React app correctly uses the library for GPU paths. (Manual check needed, blocked by environment instability if app execution is required.)
 
 **Legend:**
-*   [x] Implemented and tested/verified.
-*   [~] Partially implemented or minor known differences/issues.
-*   [!] Known critical issue or test failure. (None currently!)
+*   [x] Implemented and conceptually verified (e.g., via code inspection, API docs). Test execution may be blocked.
+*   [~] Partially implemented or minor known differences/issues. Test execution may be blocked.
+*   [!] Known critical issue, test failure, or critical task blocked by external factors (e.g., environment instability).
 *   [ ] Not Implemented / Pending.
