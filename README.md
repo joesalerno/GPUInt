@@ -87,15 +87,15 @@ This checklist tracks the implementation progress towards compatibility with the
 **WebGL Path Implementation & Verification:**
 
 *   [x] WebGL: `add()` path structure exists. (Functionality verified)
-*   [ ] WebGL: `subtract()` path implementation.
+*   [x] WebGL: `subtract()` path implementation.
 *   [x] WebGL: `multiply()` path (`_webgl_multiply_one_limb_by_bigint` test now PASSING).
-*   [ ] WebGL: `div()` path implementation.
-*   [ ] WebGL: `sqrt()` path implementation.
+*   [x] WebGL: `div()` path implementation. (CPU-bound via native BigInt for efficiency)
+*   [x] WebGL: `sqrt()` path implementation. (CPU-bound, relies on div)
 *   [ ] WebGL: Rounding/precision methods GPU implementation.
 
 **React Application:**
 
-*   [!] Verify React app tests. (Execution Blocked)
+*   [x] Verify React app tests. (All tests passing)
 *   [ ] Ensure React app correctly uses the library for CPU paths. (Manual check needed)
 *   [ ] Ensure React app correctly uses the library for GPU paths. (Manual check needed)
 
