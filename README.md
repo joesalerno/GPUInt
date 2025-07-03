@@ -13,7 +13,7 @@ WebGL-BigInt is an experimental JavaScript library aimed at exploring GPU accele
 *   **Experimental:** This library is NOT production-ready.
 *   **CPU Fallback:** Most operations have a CPU implementation. WebGL paths are experimental but improving.
 *   **`BigIntPrimitive` Class:** The main class for handling large numbers.
-*   **Arithmetic Operations:** Core arithmetic operations (`add`, `subtract`, `multiply`, `divide`, `mod`, `pow`) and formatting methods (`toString`, `toExponential`, `toFixed`, `round`) have CPU implementations. WebGL paths for `add` and `multiply_limb_by_bigint` are functional.
+*   **Arithmetic Operations:** Core arithmetic operations (`add`, `subtract`, `multiply`, `divide`, `mod`, `pow`) and formatting methods (`toString`, `toExponential`, `toFixed`, `round`) have CPU implementations. WebGL paths for `add` and `_multiply_limb_by_bigint` are functional.
 *   **Performance:** Not yet benchmarked. The overhead of data transfer to/from the GPU and WebGL setup might outweigh benefits for smaller numbers or infrequent operations.
 *   **All tests are now passing.**
 
@@ -88,10 +88,11 @@ This checklist tracks the implementation progress towards compatibility with the
 
 *   [x] WebGL: `add()` path structure exists. (Functionality verified)
 *   [x] WebGL: `subtract()` path implementation.
-*   [x] WebGL: `multiply()` path (`_webgl_multiply_one_limb_by_bigint` test now PASSING).
-*   [x] WebGL: `div()` path implementation. (CPU-bound via native BigInt for efficiency)
-*   [x] WebGL: `sqrt()` path implementation. (CPU-bound, relies on div)
-*   [ ] WebGL: Rounding/precision methods GPU implementation.
+*   [x] WebGL: `_multiply_limb_by_bigint` (single limb multiplication) is functional.
+*   [x] WebGL: Full `multiply()` path for two multi-limb numbers (multi-pass summation implemented in JS).
+*   [ ] WebGL: `div()` path implementation. (Currently CPU-bound, re-evaluate after full GPU multiply)
+*   [ ] WebGL: `sqrt()` path implementation. (Currently CPU-bound, re-evaluate after full GPU multiply)
+*   [ ] WebGL: Rounding/precision methods GPU implementation. (Re-evaluate after full GPU multiply)
 
 **React Application:**
 
