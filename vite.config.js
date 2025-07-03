@@ -16,5 +16,8 @@ export default defineConfig({
       // You might need to specify playwright-specific options here if necessary
       // e.g., playwright: { launchOptions: { ... } }
     },
+    transformMode: {
+      web: ['**/*.js'],
+    },
   },
 })

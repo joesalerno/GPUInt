@@ -256,13 +256,13 @@ describe('App Component', () => {
     }));
   });
 
-  it('should polyfill BigInt if not available and main.jsx is imported', async () => {
+  it('should polyfill BigInt if not available when polyfills.js is imported', async () => {
     const originalBigInt = window.BigInt;
     delete window.BigInt; // Simulate environment where BigInt is not defined
 
     try {
-      // Dynamically import main.jsx to trigger polyfill execution
-      await import('../src/main.jsx');
+      // Dynamically import polyfills.js to trigger polyfill execution
+      await import('../src/polyfills.js');
 
       expect(window.BigInt).toBeDefined();
       // Test if the polyfilled BigInt can perform a basic operation

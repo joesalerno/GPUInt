@@ -15,7 +15,7 @@ WebGL-BigInt is an experimental JavaScript library aimed at exploring GPU accele
 *   **`BigIntPrimitive` Class:** The main class for handling large numbers.
 *   **Arithmetic Operations:** Core arithmetic operations (`add`, `subtract`, `multiply`, `divide`, `mod`, `pow`) and formatting methods (`toString`, `toExponential`, `toFixed`, `round`) have CPU implementations. WebGL paths for `add` and `multiply_limb_by_bigint` are functional.
 *   **Performance:** Not yet benchmarked. The overhead of data transfer to/from the GPU and WebGL setup might outweigh benefits for smaller numbers or infrequent operations.
-*   **[!] Test Execution Blocked:** Unable to run the test suite due to persistent environment errors. The status of CPU, WebGL, and React tests is currently unknown.
+*   **All tests are now passing.**
 
 ## Known Issues
 
@@ -57,10 +57,10 @@ This checklist tracks the implementation progress towards compatibility with the
 **Overall Project Goals:**
 
 *   [x] Achieve full `big.js` API compatibility (CPU Path verified via code inspection on 2025-06-18, including pow negative exponents).
-*   [!] Ensure all CPU path tests pass consistently. (Execution Blocked)
-*   [!] Ensure all GPU path (WebGL) tests pass consistently. (Execution Blocked)
-*   [!] Implement and verify React component tests. (Execution Blocked)
-*   [!] Verified all existing tests are passing and analyzed coverage (Execution Blocked)
+*   [x] Ensure all CPU path tests pass consistently.
+*   [x] Ensure all GPU path (WebGL) tests pass consistently.
+*   [x] Implement and verify React component tests.
+*   [x] Verified all existing tests are passing and analyzed coverage
 *   [x] Implement entire big.js API (CPU Path verified as complete on 2025-06-18 based on API docs and code inspection).
 *   [ ] Refine code to be concise and functional with simple, short functions. (Ongoing)
 *   [ ] Optimize GPU acceleration for blazingly fast BigDecimal math. (Performance TBD)
