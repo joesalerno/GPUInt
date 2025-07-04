@@ -1,28 +1,33 @@
 precision highp float;
 varying vec2 v_texCoord;
 
-uniform sampler2D u_inputTexture; // .r: limb_k (or S_k initial), .g: carry_from_k-1 from *previous* iteration's output
+uniform sampler2D u_inputTexture;
 uniform float u_base;
-uniform float u_textureWidth; // Width of the texture in pixels
+uniform float u_textureWidth;
+
+// Function to compute fmod more robustly for positive numbers
+float robust_mod(float x, float y) {
+    if (y == 0.0) return x;
+    return x - y * floor(x / y);
+}
 
 void main() {
-    float current_x_pixel = gl_FragCoord.x - 0.5; // Current pixel's x-coordinate (0 to width-1)
+    float current_x_pixel_idx = floor(v_texCoord.x * u_textureWidth);
+    vec2 current_tex_coord = vec2((current_x_pixel_idx + 0.5) / u_textureWidth, 0.5);
 
-    // Current limb value (L'_k) at this position k
-    vec4 self_components = texture2D(u_inputTexture, vec2(current_x_pixel / u_textureWidth, 0.5));
-    float current_limb_value = self_components.r;
+    vec4 self_components = texture2D(u_inputTexture, current_tex_coord);
+    float current_limb_val = self_components.r;
 
-    // Carry from the left neighbor (k-1), which was generated in the *previous* iteration and stored in its .g channel
-    float carry_from_left = 0.0;
-    if (current_x_pixel > 0.0) {
-        vec4 left_neighbor_components = texture2D(u_inputTexture, vec2((current_x_pixel - 1.0) / u_textureWidth, 0.5));
-        carry_from_left = left_neighbor_components.g; // This is the C'_{k-1}
+    float propagated_carry_from_left = 0.0;
+    if (current_x_pixel_idx > 0.0) {
+        vec2 left_neighbor_tex_coord = vec2((current_x_pixel_idx - 1.0 + 0.5) / u_textureWidth, 0.5);
+        propagated_carry_from_left = texture2D(u_inputTexture, left_neighbor_tex_coord).g;
     }
 
-    float sum_with_carry = current_limb_value + carry_from_left;
+    float sum_for_final_limb = current_limb_val + propagated_carry_from_left;
 
-    float new_limb_at_k = mod(sum_with_carry, u_base);
-    float new_carry_from_k = floor(sum_with_carry / u_base); // This is C'_k to be used by k+1 in the *next* iteration
+    float new_limb_at_k = robust_mod(sum_for_final_limb, u_base); // Use robust_mod
+    float new_carry_from_k = floor(sum_for_final_limb / u_base);
 
     gl_FragColor = vec4(new_limb_at_k, new_carry_from_k, 0.0, 1.0);
 }
