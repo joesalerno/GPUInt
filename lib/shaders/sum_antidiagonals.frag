@@ -1,55 +1,89 @@
 precision highp float;
 
-uniform sampler2D u_partialProductsTexture; // Texture containing (value, carry) from P_ij = A_i * B_j
-uniform float u_lenA;                     // Number of limbs in operand A
-uniform float u_lenB;                     // Number of limbs in operand B
-uniform float u_productTexWidth;          // Width of the partial products texture
-uniform float u_productTexHeight;         // Height of the partial products texture
-uniform float u_base;
-uniform float u_outputTexWidth;           // Width of the output texture
+uniform sampler2D u_partialProductsTex; // Texture containing limb products (P_ij_val in .r, P_ij_carry in .g)
+uniform int u_texWidth;                 // Dimension of the square texture (N)
+uniform int u_k;                        // The anti-diagonal index we are summing (0 to 2N-2)
+uniform float u_base;                   // The base of the limb system (e.g., 10000.0)
 
-varying vec2 v_texCoord; // Normalized texture coordinates for the output pixel
-
-const int MAX_LIMB_ITERATIONS = 256;
-
-// Function to compute fmod more robustly for positive numbers
-float robust_mod(float x, float y) {
-    if (y == 0.0) return x; // Or handle error appropriately
-    return x - y * floor(x / y);
+// Function to robustly calculate modulo for positive numbers
+float robust_mod(float a, float b) {
+    return a - b * floor(a / b);
 }
 
+// Function to perform higher precision multiplication of two "limbs"
+// and return the result as {value_within_base, carry_out_of_base}
+// This is used by multiply_full.frag and needed here for consistent simulation if required.
+vec2 multiply_limbs_to_val_carry(float limbA, float limbB, float base) {
+    float S = sqrt(base); // Split point for emulated higher precision
+    float al = robust_mod(limbA, S);
+    float ah = floor(limbA / S);
+    float bl = robust_mod(limbB, S);
+    float bh = floor(limbB / S);
+
+    float c0 = al * bl;
+    float c1 = ah * bl + al * bh;
+    float c2 = ah * bh;
+
+    // Reconstruct the full product: P = c2*S^2 + c1*S + c0
+    // P = c2*base + c1*S + c0
+    // We need to get this into: resultLimb + carryOut * base
+
+    float X = c1 * S + c0; // Intermediate sum that might exceed 'base'
+
+    float resultLimb = robust_mod(X, base);
+    float carryToC2 = floor(X / base);
+    float totalCarry = c2 + carryToC2;
+
+    return vec2(resultLimb, totalCarry);
+}
+
+
 void main() {
-    // k is the index of the anti-diagonal, and also the index of the output limb S_k
-    float k_float = floor(v_texCoord.x * u_outputTexWidth);
-    int k = int(k_float);
+    // Accumulators for the sum of P_val and P_carry for the current anti-diagonal k
+    float s_k_limb_accumulator = 0.0;
+    float s_k_carry_accumulator = 0.0;
 
-    float sum_val = 0.0;
-    float sum_carry = 0.0;
+    // Loop through all possible i values for the current anti-diagonal k
+    // i ranges from max(0, k - (N-1)) to min(k, N-1)
+    // N is u_texWidth
+    // For GLSL ES 1.0, loop counters must be const. Iterating u_texWidth times is safe.
+    // We will select only valid (i,j) pairs inside the loop.
+    // j = k - i.
+    // Constraints: 0 <= i < N and 0 <= j < N
+    // So, 0 <= i < N and 0 <= k-i < N  =>  k-N < i <= k
 
-    // Sum P_ij where i+j = k
-    for (int i = 0; i < MAX_LIMB_ITERATIONS; ++i) {
-        if (i >= int(u_lenA)) { // Current limb of A is out of bounds
-            break;
-        }
+    const int MAX_ITERATIONS = 256; // Max texture dimension supported by multiply_full
 
-        int j = k - i; // Calculate corresponding limb index for B
+    for (int i = 0; i < MAX_ITERATIONS; ++i) {
+        if (i >= u_texWidth) break; // Ensure i is within bounds of actual texture dim
 
-        if (j >= 0 && j < int(u_lenB)) { // Check if limb of B is in bounds
-            // (i, j) is a valid index pair for P_ij
-            // Sample u_partialProductsTexture at coordinates corresponding to (i, j)
-            float u_coord = (float(i) + 0.5) / u_productTexWidth;
-            float v_coord = (float(j) + 0.5) / u_productTexHeight;
-            vec4 partial_product_components = texture2D(u_partialProductsTexture, vec2(u_coord, v_coord));
+        int j = u_k - i;
 
-            sum_val += partial_product_components.r;   // Add value part of P_ij
-            sum_carry += partial_product_components.g; // Add carry part of P_ij
+        if (j >= 0 && j < u_texWidth) {
+            // This (i,j) is a valid pair for the current anti-diagonal k
+
+            // Texture coordinates are normalized (0.0 to 1.0).
+            // Adding 0.5 to pixel index to sample center of texel.
+            float tex_i = (float(i) + 0.5) / float(u_texWidth);
+            float tex_j = (float(j) + 0.5) / float(u_texWidth);
+
+            vec4 partial_product_components = texture2D(u_partialProductsTex, vec2(tex_i, tex_j));
+            float P_val = partial_product_components.r; // The P_ij_val (product mod base)
+            float P_c = partial_product_components.g;   // The P_ij_carry (product / base)
+
+            // Accumulate P_val into s_k_limb_accumulator, propagating its carry
+            float temp_sum_for_limb = s_k_limb_accumulator + P_val;
+            s_k_limb_accumulator = robust_mod(temp_sum_for_limb, u_base);
+            s_k_carry_accumulator += floor(temp_sum_for_limb / u_base);
+
+            // Add P_c to the carry accumulator
+            s_k_carry_accumulator += P_c;
         }
     }
 
-    // Normalize the sum: S_k = (sum_val_k % BASE), C_k_initial = floor(sum_val_k / BASE) + sum_carry_k
-    float final_limb_val = robust_mod(sum_val, u_base); // Use robust_mod
-    float carry_from_sum_val = floor(sum_val / u_base);
-    float final_carry_val = carry_from_sum_val + sum_carry;
-
-    gl_FragColor = vec4(final_limb_val, final_carry_val, 0.0, 1.0); // Output S_k % BASE and its initial carry
+    // s_k_limb_accumulator is the final limb value for this anti-diagonal (C_k)
+    // s_k_carry_accumulator is the carry to be passed to the next anti-diagonal sum ( conceptually C_{k+1} += s_k_carry_accumulator * u_base, but handled in JS)
+    // For this shader, we just output these two components.
+    // The JS side will read these values and perform the final carry propagation across all C_k.
+    gl_FragColor = vec4(s_k_limb_accumulator, s_k_carry_accumulator, 0.0, 1.0);
 }

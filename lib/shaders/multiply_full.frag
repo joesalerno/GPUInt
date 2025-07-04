@@ -27,11 +27,44 @@ void main() {
     // Note: The original used v_texCoord.x for num1 and v_texCoord.y for num2.
     // This means texPartialProducts(x,y) = num1[x] * num2[y]. This is fine.
 
-    float product = limbA * limbB;
+    // Check for zero limbs early to avoid issues if S is derived from limbA/B, or just for efficiency.
+    if (limbA == 0.0 || limbB == 0.0) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
 
-    // The product can be larger than BASE. We need to split it into current limb and carry.
-    float resultLimb = robust_mod(product, u_base); // Use robust_mod
-    float carryOut = floor(product / u_base);
+    // Emulated higher precision multiplication for limbA * limbB
+    // Product P = c2*BASE + c1*S + c0
+    // where S = sqrt(BASE). For BASE = 10000, S = 100.
+    // Max limb value for BASE=10000 is 9999.
+    // Splitting limb L = ah*S + al, max ah, al = 99.
+
+    float S = sqrt(u_base); // S = 100.0 for u_base = 10000.0
+
+    float al = robust_mod(limbA, S);
+    float ah = floor(limbA / S);
+    float bl = robust_mod(limbB, S);
+    float bh = floor(limbB / S);
+
+    float c0 = al * bl;         // max 99*99 = 9801. Fits float.
+    float c1_term1 = ah * bl;   // max 9801. Fits float.
+    float c1_term2 = al * bh;   // max 9801. Fits float.
+    float c1 = c1_term1 + c1_term2; // max 19602. Fits float.
+
+    float c2 = ah * bh;         // max 9801. Fits float.
+
+    // Intermediate sum X = c1*S + c0
+    // c1*S max 19602 * 100 = 1,960,200
+    // c0 max 9801
+    // X max 1,960,200 + 9801 = 1,969,001. This fits in highp float accurately.
+    float X = c1 * S + c0;
+
+    // Now, split X with respect to u_base
+    float resultLimb = robust_mod(X, u_base);
+    float carryFromX = floor(X / u_base); // This is the carry from (c1*S + c0) part
+
+    // The full carryOut is c2 (from ah*bh*BASE) + carryFromX
+    float carryOut = c2 + carryFromX;
 
     // Store resultLimb in .r and carryOut in .g
     gl_FragColor = vec4(resultLimb, carryOut, 0.0, 1.0);

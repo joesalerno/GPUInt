@@ -10,9 +10,20 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.js'],
     browser: {
       enabled: true,
-      name: 'chromium', // Can be 'firefox', 'webkit', 'edge'
       provider: 'playwright',
       headless: true, // Run browser in headless mode
+      instances: [
+        {
+          browser: 'chromium', // Correct key as per Vitest documentation
+        },
+        // Example for other browsers if needed later:
+        // {
+        //   browser: 'firefox',
+        // },
+        // {
+        //   browser: 'webkit',
+        // },
+      ],
       // You might need to specify playwright-specific options here if necessary
       // e.g., playwright: { launchOptions: { ... } }
     },
