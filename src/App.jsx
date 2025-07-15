@@ -9,6 +9,7 @@ function App() {
   const [forceCPU, setForceCPU] = useState(false);
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
+  const [executionTime, setExecutionTime] = useState(null);
   const [formatOptions, setFormatOptions] = useState({
     decimalPlaces: 2,
     useGrouping: false,
@@ -20,9 +21,20 @@ function App() {
 
   const canvasRef = useRef(null);
 
+  const formatExecutionTime = (timeMs) => {
+    if (timeMs < 1) {
+      return `${timeMs.toFixed(3)} ms`;
+    } else if (timeMs < 1000) {
+      return `${timeMs.toFixed(2)} ms`;
+    } else {
+      return `${(timeMs / 1000).toFixed(3)} s`;
+    }
+  };
+
   const handleCalculate = () => {
     setResult("");
     setError("");
+    setExecutionTime(null);
 
     if (!canvasRef.current) {
       setError("Error: Canvas element not found.");
@@ -30,6 +42,8 @@ function App() {
     }
 
     try {
+      const startTime = performance.now();
+      
       const options = { forceCPU: forceCPU };
       const bigInt1 = new BigIntPrimitive(num1, canvasRef.current, options);
       const bigInt2 = new BigIntPrimitive(num2, canvasRef.current, options);
@@ -56,17 +70,24 @@ function App() {
         default:
           throw new Error('Unknown operation selected');
       }
+      
+      const endTime = performance.now();
+      const executionTimeMs = endTime - startTime;
+      
       setResult(calcResult.toString());
+      setExecutionTime(executionTimeMs);
     } catch (e) {
       console.error("Calculation error:", e);
       setResult(''); // Clear previous result when an error occurs
       setError(`Error: ${e.message}${e.stack ? `\nStack: ${e.stack}` : ''}`);
+      setExecutionTime(null);
     }
   };
 
   const handleFormat = () => {
     setResult("");
     setError("");
+    setExecutionTime(null);
 
     if (!canvasRef.current) {
       setError("Error: Canvas element not found.");
@@ -74,15 +95,23 @@ function App() {
     }
 
     try {
+      const startTime = performance.now();
+      
       const options = { forceCPU: forceCPU };
       const bigInt1 = new BigIntPrimitive(num1, canvasRef.current, options);
       // Ensure formatOptions state is correctly passed
       const formattedResult = bigInt1.toFormat(formatOptions);
+      
+      const endTime = performance.now();
+      const executionTimeMs = endTime - startTime;
+      
       setResult(formattedResult);
+      setExecutionTime(executionTimeMs);
     } catch (e) {
       console.error("Formatting error:", e);
       setResult(''); // Clear previous result
       setError(`Error: ${e.message}${e.stack ? `\nStack: ${e.stack}` : ''}`);
+      setExecutionTime(null);
     }
   };
 
@@ -230,7 +259,20 @@ function App() {
       </div>
 
 
-      <h3>Result:</h3>
+      <div className="result-header">
+        <h3>Result:</h3>
+        {executionTime !== null && (
+          <div className="execution-time">
+            <strong>Execution Time: </strong>
+            <span className="time-value">
+              {formatExecutionTime(executionTime)}
+            </span>
+            <span className="execution-mode">
+              {forceCPU ? ' (CPU)' : ' (GPU/WebGL)'}
+            </span>
+          </div>
+        )}
+      </div>
       <pre id="resultArea" data-testid="result-area" className="result-area">{result}</pre>
 
       {error && (

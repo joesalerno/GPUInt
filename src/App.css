@@ -91,6 +91,19 @@
 }
 
 
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.result-header h3 {
+  margin: 0;
+  flex-shrink: 0;
+}
+
 .result-area,
 .error-area {
   width: 100%;
@@ -106,6 +119,38 @@
 .error-area {
   color: red;
   border-color: red;
+}
+
+.execution-time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: #e8f4f8;
+  border: 1px solid #b8d4da;
+  border-radius: 4px;
+  font-size: 0.9em;
+  flex-shrink: 0;
+}
+
+.execution-time strong {
+  color: #2c5aa0;
+}
+
+.time-value {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #1a5490;
+  background-color: #ffffff;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  border: 1px solid #c8d8dc;
+}
+
+.execution-mode {
+  color: #666;
+  font-style: italic;
+  font-size: 0.85em;
 }
 
 #webglCanvas {
