@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPU BigInt Division Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #1976d2;
+            color: white;
+        }
+        button:hover {
+            background: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <h1>GPU BigInt Division Test</h1>
+    
+    <div>
+        <h2>Test Large Number Division: 12345678901234567890 / 98765432109876543210</h2>
+        <p>Expected: 0.12499999886093750001423828124982</p>
+        
+        <button onclick="testDivision()">Test Division</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        import { BigIntPrimitive } from './lib/bigint.js';
+        
+        window.testDivision = async function() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Test the specific division case
+                const a = new BigIntPrimitive('12345678901234567890');
+                const b = new BigIntPrimitive('98765432109876543210');
+                
+                console.log('Testing division: 12345678901234567890 / 98765432109876543210');
+                
+                // GPU result
+                const gpuResult = a.divide(b);
+                console.log('GPU Result:', gpuResult.toString());
+                
+                // CPU result for comparison
+                const cpuResult = a.divide(b, { forceCPU: true });
+                console.log('CPU Result:', cpuResult.toString());
+                
+                const expected = '0.12499999886093750001423828124982';
+                
+                // Display results
+                resultsDiv.innerHTML += `
+                    <div class="result">
+                        <strong>GPU Result:</strong> ${gpuResult.toString()}<br>
+                        <strong>CPU Result:</strong> ${cpuResult.toString()}<br>
+                        <strong>Expected:</strong> ${expected}<br>
+                        <strong>GPU matches expected:</strong> ${gpuResult.toString() === expected ? 'YES' : 'NO'}<br>
+                        <strong>Results match:</strong> ${gpuResult.toString() === cpuResult.toString() ? 'YES' : 'NO'}
+                    </div>
+                `;
+                
+                // Check if results are correct
+                if (gpuResult.toString() === expected) {
+                    resultsDiv.innerHTML += '<div class="result success">✓ GPU result matches expected value exactly!</div>';
+                } else {
+                    resultsDiv.innerHTML += '<div class="result error">✗ GPU result does not match expected value</div>';
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `<div class="result error">Error: ${error.message}</div>`;
+                console.error('Test error:', error);
+            }
+        };
+        
+        window.clearResults = function() {
+            document.getElementById('results').innerHTML = '';
+        };
+        
+        // Auto-run the test when page loads
+        window.addEventListener('load', () => {
+            setTimeout(testDivision, 1000);
+        });
+    </script>
+</body>
+</html>
