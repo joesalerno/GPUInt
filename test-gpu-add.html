@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GPU Addition Test</title>
+</head>
+<body>
+    <h1>GPU Addition Test</h1>
+    <canvas id="testCanvas" width="256" height="256" style="border: 1px solid black;"></canvas>
+    <div id="results"></div>
+    
+    <script type="module">
+        import { BigIntPrimitive } from './lib/bigint.js';
+        
+        const canvas = document.getElementById('testCanvas');
+        const resultsDiv = document.getElementById('results');
+        
+        async function testGPUAddition() {
+            try {
+                // Create large numbers that will trigger GPU path (>10 limbs)
+                const num1 = new BigIntPrimitive('12345678901234567890123456789012345678901234567890', canvas);
+                const num2 = new BigIntPrimitive('98765432109876543210987654321098765432109876543210', canvas);
+                
+                console.log('Testing GPU addition with large numbers...');
+                console.log('Num1 limbs:', num1.limbs.length);
+                console.log('Num2 limbs:', num2.limbs.length);
+                
+                const result = num1.add(num2);
+                
+                resultsDiv.innerHTML = `
+                    <h3>GPU Addition Test Results</h3>
+                    <p><strong>Num1:</strong> ${num1.toString()}</p>
+                    <p><strong>Num2:</strong> ${num2.toString()}</p>
+                    <p><strong>Result:</strong> ${result.toString()}</p>
+                    <p><strong>Status:</strong> Test completed successfully!</p>
+                `;
+                
+                console.log('GPU addition test completed successfully!');
+            } catch (error) {
+                console.error('GPU addition test failed:', error);
+                resultsDiv.innerHTML = `
+                    <h3>GPU Addition Test Results</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+        }
+        
+        // Run the test
+        testGPUAddition();
+    </script>
+</body>
+</html>
