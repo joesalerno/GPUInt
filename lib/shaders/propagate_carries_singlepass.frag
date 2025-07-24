@@ -13,17 +13,21 @@ float robust_mod(float x, float y) {
     return x - y * floor(x / y);
 }
 
+const int MAX_WIDTH = 256;
+
 void main() {
     float idx = floor(v_texCoord.x * u_textureWidth);
     float texelX = (idx + 0.5) / u_textureWidth;
     float sum = 0.0;
     float carry = 0.0;
     // Prefix sum: accumulate all previous carries and values
-    for (float i = 0.0; i <= idx; i += 1.0) {
-        float sampleX = (i + 0.5) / u_textureWidth;
-        vec4 limb = texture2D(u_inputTexture, vec2(sampleX, 0.5));
-        sum += limb.r;
-        sum += limb.g; // accumulate carry from previous limb
+    for (int i = 0; i < MAX_WIDTH; i++) {
+        if (float(i) <= idx) {
+            float sampleX = (float(i) + 0.5) / u_textureWidth;
+            vec4 limb = texture2D(u_inputTexture, vec2(sampleX, 0.5));
+            sum += limb.r;
+            sum += limb.g; // accumulate carry from previous limb
+        }
     }
     float resultLimb = robust_mod(sum, u_base);
     float carryOut = floor(sum / u_base);

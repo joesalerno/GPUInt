@@ -1,7 +1,7 @@
 precision highp float;
 
 uniform sampler2D u_partialProductsTex; // Texture containing limb products (P_ij_val in .r, P_ij_carry in .g)
-uniform int u_texWidth;                 // Dimension of the square texture (N)
+uniform float u_texWidth;                 // Dimension of the square texture (N)
 uniform int u_k;                        // The anti-diagonal index we are summing (0 to 2N-2)
 uniform float u_base;                   // The base of the limb system (e.g., 10000.0)
 
@@ -55,11 +55,10 @@ void main() {
     const int MAX_ITERATIONS = 256; // Max texture dimension supported by multiply_full
 
     for (int i = 0; i < MAX_ITERATIONS; ++i) {
-        if (i >= u_texWidth) break; // Ensure i is within bounds of actual texture dim
-
         int j = u_k - i;
 
-        if (j >= 0 && j < u_texWidth) {
+        // Conditionally process based on valid indices
+        if (i >= 0 && i < int(u_texWidth) && j >= 0 && j < int(u_texWidth)) {
             // This (i,j) is a valid pair for the current anti-diagonal k
 
             // Texture coordinates are normalized (0.0 to 1.0).
