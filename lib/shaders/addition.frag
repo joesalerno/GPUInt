@@ -2,7 +2,6 @@ precision highp float;
 
 uniform sampler2D u_num1Texture;
 uniform sampler2D u_num2Texture;
-// uniform sampler2D u_carryTexture; // Carry-in texture might not be needed if processed serially or handled by CPU
 uniform float u_base;
 uniform float u_texWidth; // Width of the texture (number of limbs)
 varying vec2 v_texCoord;
@@ -18,9 +17,8 @@ void main() {
 
     float limb1 = texture2D(u_num1Texture, vec2(texelX, 0.5)).r;
     float limb2 = texture2D(u_num2Texture, vec2(texelX, 0.5)).r;
-    // float carryIn = texture2D(u_carryTexture, vec2(texelX, 0.5)).r; // Assuming carry-in is 0 for this simplified shader pass
 
-    float sum = limb1 + limb2; // + carryIn;
+    float sum = limb1 + limb2;
     float resultLimb = mod(sum, u_base);
     float carryOut = floor(sum / u_base);
 
